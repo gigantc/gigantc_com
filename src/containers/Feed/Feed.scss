@@ -1,0 +1,76 @@
+
+.feed{
+  position:relative;
+  height:auto; width:calc(50% - 20px);
+  min-height:400px;
+  background-color:$box;
+  color:$bright;
+  overflow: visible;
+  z-index:1;
+
+  .error{
+    position:absolute;
+    top:60px; left:0; right:0; bottom:0;
+    margin:auto;
+    height:20px;
+    text-align:center;
+    font: 900 20px/20px $red_hat;
+    color:$highlight;
+  }
+
+
+  .box{
+
+    .head{
+      background-color:$main;
+      height:50px; width:100%;
+      display:flex;
+      align-items: center;
+      justify-content: space-between;
+      padding:0px 0px 10px 0px;
+      h2{
+        text-align:left;
+        color:$highlight;
+        margin:0px 0px 0px 0px;
+        // @include trans(0.2s);
+        // &:hover{
+        //   @include trans(0.2s);
+        //  color: $bright;
+        // }
+      }
+  
+      .more{
+        height:18px;
+        fill: $highlight;
+        cursor:pointer;
+        @include trans(0.2s);
+        &:hover{
+          @include trans(0.2s);
+          fill: $bright;
+        }
+      }
+    }
+
+    .items{
+      border-top:1px solid rgba($highlight, 0.9);
+      padding:30px 20px 10px 20px;
+      .feed-item{
+        margin:0px 0px 20px 0px;
+       
+        h3{
+          color:$bright;
+          margin:0px 0px 5px 0px;
+        }
+        p{
+          font: 400 12px/12px $roboto;
+          color:$highlight;
+          margin:0px;
+        }
+      }
+    }
+    
+
+    
+    
+  }
+}

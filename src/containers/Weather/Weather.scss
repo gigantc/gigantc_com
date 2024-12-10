@@ -1,0 +1,79 @@
+
+.weather{
+  position:relative;
+  height:auto; width:calc(50% - 20px);
+  min-height:400px;
+  background-color:$box;
+  color:$bright;
+  border-top:1px solid rgba($highlight, 0.9);
+  overflow: visible;
+  z-index:1;
+
+
+  .box{
+    padding:20px;
+    .text{
+      display:flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap:wrap;
+      .currentTemp{
+        text-align:center;
+        width:100%;
+        font: 200 75px/75px $red_hat;
+        color:$bright;
+        margin:30px 0px 30px 0px;
+      }
+      .description{
+        text-align:center;
+        width:100%;
+        font: 400 22px/24px $roboto;
+        color:$highlight;
+        margin:0px 0px 10px 0px;
+      }
+      .wind{
+        text-align:center;
+        width:100%;
+        font: 400 16px/20px $roboto;
+        color:$highlight;
+        strong{
+          font: 700 16px/20px $roboto;
+        }
+      }
+  
+      .dataRow{
+        display:flex;
+        align-items: center;
+        justify-content: space-between;
+        width:100%;
+        margin:50px auto 10px;
+        span{
+          width:20%;
+          &:nth-of-type(3){
+            margin-left: auto;
+          }
+        }
+        .icon{
+          display:block;
+          height:40px; width:auto;
+          margin:0px auto;
+          fill: $highlight;
+        }
+        h6{
+          margin:0px 0px 5px 0px;
+          text-align:center;
+          font: 600 12px/12px $red_hat;
+          color:$bright;
+        }
+        p{
+          margin:0px;
+          text-align:center;
+          font: 400 18px/20px $roboto;
+          color: $bright;
+        }
+       
+      }
+    }
+    
+  }
+}

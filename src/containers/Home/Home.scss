@@ -1,0 +1,22 @@
+
+.homeContainer{
+  position:relative;
+  height:auto; width:100%;
+  min-height:100vh;
+  display:flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-wrap:wrap;
+  background-color:$main;
+  color:$bright;
+  padding:100px 0px 50px 0px;
+
+  .wrap{
+    display:flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-wrap:wrap;
+    align-items: stretch;
+    gap: 60px 40px;
+  }
+}

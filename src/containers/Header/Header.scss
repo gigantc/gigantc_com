@@ -1,0 +1,45 @@
+
+.header{
+  position:fixed;
+  top:0; left:0;
+  height:60px; width:100%;
+  background-color:$dark;
+  color:$bright;
+  //border-bottom:1px solid rgba($highlight, 0.9);
+  overflow: visible;
+  z-index:9;
+  .wrap{
+    height:100%;
+    display:flex;
+    align-items: center;
+    justify-content: flex-end;
+    .title{
+      font: 850 18px/18px $red_hat;
+      margin-right: auto;
+    }
+    .time{
+      width:500px;
+      display:flex;
+      align-items: space-between;
+      justify-content: flex-end;
+      span{
+        width:25px;
+        text-align:center;
+        font: 400 18px/18px $red_hat;
+        color:$bright;
+      }
+      .date{
+        width:200px;
+        font: 400 18px/18px $red_hat;
+        color:$highlight;
+      }
+    }
+    .weather{
+      font: 400 18px/18px $red_hat;
+      color:$highlight;
+      margin:0px 0px 0px 20px;
+      margin-right: auto;
+    }
+
+  }
+}

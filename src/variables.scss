@@ -1,0 +1,46 @@
+// COLORS -----------------------
+$black: #000000;
+$white:#eeeeee;
+
+//////////////////////////////////////
+// THEMES
+
+
+// HELLO AGAIN -----------------------
+// $main: #1a232d;
+// $highlight: #3d9bc7;
+// $box: rgba($highlight, .11);
+// $dark: #091119;
+// $bright: #cfe6ce;
+
+
+// OG HELLO! -----------------------
+$main: #1a232d;
+$highlight: #1b516a;
+$box: rgba($highlight, .11);
+$dark: #131a21;
+$bright: #cfe6ce;
+
+
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+$red_hat: 'Red Hat Display', Helvetica Neue, Helvetica, Arial, sans-serif;
+$roboto: "Roboto", Helvetica Neue, Helvetica, Arial, sans-serif;
+
+// MIXINS -----------------------
+@mixin breakpoint($size) { 
+  @media screen and (max-width: $size) { @content; } 
+ }
+ 
+ @mixin breakpoint-min($size) {
+   @media screen and (min-width: $size) { @content; } 
+ }
+ 
+ @mixin trans($sec){
+   -webkit-transition: all ($sec) ease-in-out;
+   -moz-transition: all ($sec) ease-in-out;
+   -o-transition: all ($sec) ease-in-out;
+   transition: all ($sec) ease-in-out;
+ }
+ 
