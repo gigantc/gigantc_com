@@ -3,6 +3,7 @@ import axios from 'axios';
 
 import Loader from '../../components/Loader/Loader.jsx';
 import More from '../../assets/forward.svg?react';
+import Refresh from '../../assets/refresh.svg?react';
 
 import './Feed.scss';
 
@@ -59,6 +60,8 @@ const Feed = ({ feedTitle, feedUrl }) => {
               pubDate: item.querySelector("pubDate")?.textContent || "No Date",
             };
           });
+      
+      console.log(items);
   
       setFeedItems(items);
     } catch (err) {
@@ -105,6 +108,15 @@ const Feed = ({ feedTitle, feedUrl }) => {
 
 
 
+  //////////////////////////////////////
+  // HANDLE REFRESH
+  const handleRefresh = () => {
+    console.log('--refreshing--');
+    fetchFeed(feedUrl);
+    setStartIndex(0);
+  }
+
+
 
   //////////////////////////////////////
   // RENDER
@@ -129,6 +141,10 @@ const Feed = ({ feedTitle, feedUrl }) => {
             <More 
               className="more"
               onClick={handleLoadMore}
+            />
+            <Refresh 
+              className="refresh"
+              onClick={handleRefresh}
             />
           </div> 
           <div className="items">

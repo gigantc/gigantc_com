@@ -26,12 +26,13 @@
       height:50px; width:100%;
       display:flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       padding:0px 0px 10px 0px;
       h2{
         text-align:left;
         color:$highlight;
         margin:0px 0px 0px 0px;
+        margin-right:auto;
         // @include trans(0.2s);
         // &:hover{
         //   @include trans(0.2s);
@@ -39,11 +40,12 @@
         // }
       }
   
-      .more{
+      .more, .refresh{
         height:18px;
         fill: $highlight;
         cursor:pointer;
         @include trans(0.2s);
+        margin:0px 0px 0px 10px;
         &:hover{
           @include trans(0.2s);
           fill: $bright;
