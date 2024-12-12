@@ -31,16 +31,23 @@ const Today = () => {
   //////////////////////////////////////
   // SELECT RANDOM EVENT
   const selectRandomEvent = (events) => {
-    if (events.length === 0) return { year: "Year Zero", text: "Uhhh.no factoid found.", link: "#" };
+    if (events.length === 0) return { year: "Year Zero", text: "Uhhh. No factoid found.", link: "#" };
 
     const randomIndex = Math.floor(Math.random() * events.length);
     const nextEvent = events[randomIndex];
 
     const year = nextEvent.text?.split("&#8211;")[0]?.trim() || "Year Zero";
-    const text = nextEvent.text?.split("&#8211;")[1]?.trim() || "Uhhh.no factoid found.";
+    const text = nextEvent.text?.split("&#8211;")[1]?.trim() || "Uhhh. No factoid found.";
     const link = nextEvent.links?.[1]?.[1] || "#";
 
     return { year, text, link };
+  };
+
+
+  const decodeHtmlEntities = (text) => {
+    const parser = new DOMParser();
+    const decodedString = parser.parseFromString(`<!doctype html><body>${text}`, 'text/html').body.textContent;
+    return decodedString;
   };
 
   
@@ -105,7 +112,7 @@ const Today = () => {
       ) : (
         <div className={`box ${fade ? 'fade' : ''}`}>
           <h2>On this day in <strong>{currentEvent.year}</strong></h2>
-          <p>{currentEvent.text}</p>
+          <p>{decodeHtmlEntities(currentEvent.text)}</p>
           <a href={currentEvent.link} target="_blank" rel="noopener noreferrer">
             LEARN MORE
           </a>
