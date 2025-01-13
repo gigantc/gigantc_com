@@ -12,7 +12,7 @@ export const feeds = [
   { feedTitle: "Hacker News", feedUrl: "https://news.ycombinator.com/rss" },
   { feedTitle: "Hacker Noon", feedUrl: "https://cdn.hackernoon.com/feed" },
   { feedTitle: "CoinDesk", feedUrl: "https://www.coindesk.com/arc/outboundfeeds/rss/" },
-  { feedTitle: "Heavy", feedUrl: "https://heavy.com/feed/" },
+  { feedTitle: "Formula 1", feedUrl: "https://www.formula1.com/en/latest/all.xml" },
   { feedTitle: "Awful Announcing", feedUrl: "https://awfulannouncing.com/feed" },
   { feedTitle: "Yahoo Sports", feedUrl: "https://sports.yahoo.com/rss/" },
   { feedTitle: "Pitcher List", feedUrl: "https://www.pitcherlist.com/feed/" },

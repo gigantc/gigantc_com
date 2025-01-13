@@ -43,7 +43,7 @@ const Today = () => {
     return { year, text, link };
   };
 
-
+  //removes HTML codes from the text string
   const decodeHtmlEntities = (text) => {
     const parser = new DOMParser();
     const decodedString = parser.parseFromString(`<!doctype html><body>${text}`, 'text/html').body.textContent;
