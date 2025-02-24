@@ -7,6 +7,10 @@
   color:$bright;
   overflow: visible;
   z-index:1;
+  @include breakpoint(1000px){
+    width:100%;
+    margin:10px 0px 0px 0px;
+  }
 
   .error{
     position:absolute;

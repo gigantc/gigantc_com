@@ -8,6 +8,9 @@
   border-top:1px solid rgba($highlight, 0.9);
   overflow: visible;
   z-index:1;
+  @include breakpoint(1000px){
+    width:100%;
+  }
 
 
   .box{

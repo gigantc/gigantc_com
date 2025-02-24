@@ -18,5 +18,8 @@
     flex-wrap:wrap;
     align-items: stretch;
     gap: 60px 40px;
+    @include breakpoint(1000px){
+      display:block;
+    }
   }
 }

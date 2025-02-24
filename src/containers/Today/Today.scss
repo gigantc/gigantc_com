@@ -11,6 +11,10 @@
   align-items: center;
   justify-content: center;
   z-index:1;
+  @include breakpoint(1000px){
+    width:100%;
+    margin:30px 0px 0px 0px;
+  }
 
 
   .error{
