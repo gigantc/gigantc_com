@@ -1,0 +1,53 @@
+
+//top level from Feed.jsx
+.feed{
+  .box{
+
+    .head{
+      background-color:$main;
+      height:50px; width:100%;
+      display:flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding:0px 0px 10px 0px;
+      h2{
+        text-align:left;
+        color:$highlight;
+        margin:0px 0px 0px 0px;
+        margin-right:auto;
+      }
+  
+      .more, .refresh{
+        height:18px;
+        fill: $highlight;
+        cursor:pointer;
+        @include trans(0.2s);
+        margin:0px 0px 0px 10px;
+        &:hover{
+          @include trans(0.2s);
+          fill: $bright;
+        }
+      }
+    }
+
+    .items{
+      border-top:1px solid rgba($highlight, 0.9);
+      padding:30px 20px 10px 20px;
+      .feed-item{
+        margin:0px 0px 20px 0px;
+       
+        h3{
+          color:$bright;
+          margin:0px 0px 5px 0px;
+        }
+        p{
+          font: 400 12px/12px $roboto;
+          color:$highlight;
+          margin:0px;
+        }
+      }
+    }
+  
+  }
+
+}

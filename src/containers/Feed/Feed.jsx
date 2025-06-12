@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 import Loader from '../../components/Loader/Loader.jsx';
-import More from '../../assets/forward.svg?react';
-import Refresh from '../../assets/refresh.svg?react';
+import FeedBox from '../../components/FeedBox/FeedBox.jsx';
 
 import './Feed.scss';
 
@@ -18,7 +17,48 @@ const Feed = ({ feedTitle, feedUrl }) => {
   const [channelLink, setChannelLink] = useState(null);
 
 
+  //////////////////////////////////////
+  // HANDLE LOAD MORE
+  const handleLoadMore = () => {
+    setStartIndex((prevIndex) => {
+      const nextIndex = prevIndex + 6;
+      return nextIndex >= feedItems.length ? 0 : nextIndex;
+    });
+  };
 
+
+  //////////////////////////////////////
+  // HANDLE REFRESH
+  const handleRefresh = () => {
+    console.log('--refreshing--');
+    fetchFeed(feedUrl);
+    setStartIndex(0);
+  }
+
+
+  //////////////////////////////////////
+  // FILTERS FOR PROBLEMATIC FEEDS
+  //special parsing for ATOM feeds
+  const getEntryLink = (entry) => {
+    const links = entry.getElementsByTagName("link");
+    for (let i = 0; i < links.length; i++) {
+      const rel = links[i].getAttribute("rel");
+      if (!rel || rel === "alternate") {
+        return links[i].getAttribute("href");
+      }
+    }
+    return "#";
+  };
+  // special parsing for non-atom feeds
+  const getItemLink = (item) => {
+  const links = item.getElementsByTagName("link");
+  for (let i = 0; i < links.length; i++) {
+    if (links[i].namespaceURI === null || links[i].namespaceURI === "") {
+      return links[i].textContent;
+    }
+  }
+  return "#";
+};
 
 
   //////////////////////////////////////
@@ -49,14 +89,14 @@ const Feed = ({ feedTitle, feedUrl }) => {
       const items = isAtom
         ? Array.from(xml.querySelectorAll("entry")).map((entry) => ({
             title: entry.querySelector("title")?.textContent || "No Title",
-            link: entry.querySelector("link")?.getAttribute("href") || "#",
+            link: getEntryLink(entry),
             pubDate: entry.querySelector("updated")?.textContent || "No Date",
           }))
         : Array.from(xml.querySelectorAll("item")).map((item) => {
             const contentNamespace = "http://purl.org/rss/1.0/modules/content/";
             return {
               title: item.querySelector("title")?.textContent || "No Title",
-              link: item.querySelector("link")?.textContent || "#",
+              link: getItemLink(item),
               pubDate: item.querySelector("pubDate")?.textContent || "No Date",
             };
           });
@@ -97,24 +137,7 @@ const Feed = ({ feedTitle, feedUrl }) => {
 
 
 
-  //////////////////////////////////////
-  // HANDLE LOAD MORE
-  const handleLoadMore = () => {
-    setStartIndex((prevIndex) => {
-      const nextIndex = prevIndex + 6;
-      return nextIndex >= feedItems.length ? 0 : nextIndex;
-    });
-  };
-
-
-
-  //////////////////////////////////////
-  // HANDLE REFRESH
-  const handleRefresh = () => {
-    console.log('--refreshing--');
-    fetchFeed(feedUrl);
-    setStartIndex(0);
-  }
+  
 
 
 
@@ -125,39 +148,27 @@ const Feed = ({ feedTitle, feedUrl }) => {
   return (
     <section className="feed">
       {loading ? (
-        <Loader /> // Show loader while waiting for feed data
+        // Show loader while waiting for feed data
+        <Loader /> 
 
       ) : error ? (
         <div className="box">
-           <div className="head"> <h2>{feedTitle}</h2></div>
-           <div className="items"><div className="error">{error}</div></div>
+          <div className="head">
+            <h2><a href={channelLink} target="_blank" rel="noopener noreferrer">{feedTitle}</a></h2>
+          </div>
+          <div className="items"><div className="error">{error}</div></div>
         </div>
 
 
       ) : (
-        <div className="box">
-          <div className="head">
-            <h2><a href={channelLink} target="_blank" rel="noopener noreferrer">{feedTitle}</a></h2>
-            <More 
-              className="more"
-              onClick={handleLoadMore}
-            />
-            <Refresh 
-              className="refresh"
-              onClick={handleRefresh}
-            />
-          </div> 
-          <div className="items">
-          {visibleItems.map((item, index) => (
-            <div key={index} className="feed-item">
-              <a href={item.link} target="_blank" rel="noopener noreferrer">
-                <h3>{item.title}</h3>
-              </a>
-              <p>{formatDateTime(item.pubDate)}</p>
-            </div>
-          ))}
-         </div>
-        </div>
+        <FeedBox 
+          feedTitle={feedTitle}
+          channelLink={channelLink}
+          visibleItems={visibleItems}
+          handleLoadMore={handleLoadMore}
+          handleRefresh={handleRefresh}
+          formatDateTime={formatDateTime}
+        />
       )}
     </section>
   );
