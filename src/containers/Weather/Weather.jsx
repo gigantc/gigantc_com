@@ -67,8 +67,8 @@ const Weather = () => {
       const currentTempF = convertToFahrenheit(temperature);
       const windSpeedMph = convertToMPH(windspeed);
       
-     
-      const windDirectionCardinal = getWindDirection(winddirection); // Convert degrees to cardinal
+      // Convert degrees to cardinal
+      const windDirectionCardinal = getWindDirection(winddirection);
   
       // Extract Daily Weather Data
       const dailyWeather = response.data.daily;
@@ -90,9 +90,11 @@ const Weather = () => {
         sunrise,
         sunset,
       };
-  
-      setWeatherData(data); // Update state with consolidated data
-      setError(null); // Clear any previous errors
+      
+      // Update state with consolidated data
+      setWeatherData(data); 
+      // Clear any previous errors
+      setError(null); 
     } catch (error) {
       console.error("Error fetching weather data:", error);
       setError("Unable to fetch weather data.");
@@ -121,7 +123,8 @@ const Weather = () => {
         (error) => {
           if (error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE) {
             console.warn("Retrying to get location...");
-            setTimeout(getLocation, 5000); // Retry after 5 seconds
+             // Retry after 5 seconds
+            setTimeout(getLocation, 5000);
           } else {
             console.error("Error getting location:", error.message);
           }
@@ -142,6 +145,14 @@ const Weather = () => {
   // RUN-TIME
   useEffect(() => {
     debouncedGetLocation();
+
+    //update the weather every 30 minutes
+    const interval = setInterval(() => {
+      debouncedGetLocation();
+      //in milliseconds
+    }, 1800000);
+    return () => clearInterval(interval);
+
   }, []);
 
 
