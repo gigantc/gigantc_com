@@ -101,7 +101,7 @@ const Feed = ({ feedTitle, feedUrl }) => {
             };
           });
       
-      console.log(items);
+      // console.log(items);
   
       setFeedItems(items);
     } catch (err) {

@@ -36,8 +36,9 @@ const Today = () => {
     const randomIndex = Math.floor(Math.random() * events.length);
     const nextEvent = events[randomIndex];
 
-    const year = nextEvent.text?.split("&#8211;")[0]?.trim() || "Year Zero";
-    const text = nextEvent.text?.split("&#8211;")[1]?.trim() || "Uhhh. No factoid found.";
+    const parts = nextEvent.text?.split(/&#8211;|–/);
+    const year = parts?.[0]?.trim() || "Year Zero";
+    const text = parts?.[1]?.trim() || "Uhhh. No factoid found.";
     const link = nextEvent.links?.[1]?.[1] || "#";
 
     return { year, text, link };
