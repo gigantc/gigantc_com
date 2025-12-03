@@ -40,5 +40,5 @@ export const feeds = [
   { feedTitle: "CBS News", feedUrl: "https://www.cbsnews.com/latest/rss/main" },
 
   { feedTitle: "Stereogum", feedUrl: "https://www.stereogum.com/feed/" },
-  { feedTitle: "The Quietus", feedUrl: "https://thequietus.com/feed?format=atom" },
+  { feedTitle: "Consequence", feedUrl: "https://consequence.net/?feed=rss2" },
 ];
