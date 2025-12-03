@@ -24,7 +24,7 @@ const Home = () => {
         if (isCacheValid()) {
           const cachedData = getCachedFeeds();
           if (cachedData && cachedData.length > 0) {
-            console.log('Using cached feeds (last fetch within 24 hours)');
+            // console.log('Using cached feeds (last fetch within 24 hours)');
             setFeeds(cachedData);
             setLoading(false);
             return;
@@ -32,7 +32,7 @@ const Home = () => {
         }
 
         // Cache is invalid or empty - fetch from Firebase
-        console.log('Fetching feeds from Firebase...');
+        // console.log('Fetching feeds from Firebase...');
         const data = await fetchFeeds();
         setFeeds(data);
         setCachedFeeds(data); // Save to cache

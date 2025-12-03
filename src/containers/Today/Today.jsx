@@ -4,6 +4,7 @@ import Loader from '@/components/Loader/Loader';
 import ArrowLeft from '@/assets/arrow-left.svg?react';
 import ArrowRight from '@/assets/arrow-right.svg?react';
 import { getCachedEvents, setCachedEvents, isCacheForToday } from '@/utils/todayCache';
+import { API, INTERVALS, getProxyUrl } from '@/config';
 import './Today.scss';
 
 const Today = () => {
@@ -69,14 +70,14 @@ const Today = () => {
       // Trigger fade-out
       setFade(true);
       // Wait for the fade-out to complete
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, INTERVALS.FADE_DURATION));
       // Update the event with random selection
       setCurrentEvent(selectRandomEvent(events));
       // Trigger fade-in
       setFade(false);
       // Continue rotation
       startRotation();
-    }, 19500); // 19.5s + 0.5s fade = 20s total
+    }, INTERVALS.TODAY_ROTATION);
   }, [events]);
 
   //////////////////////////////////////
@@ -91,7 +92,7 @@ const Today = () => {
       setCurrentEvent(selectEventByIndex(events, nextIndex));
       setFade(false);
       startRotation(); // Reset rotation timer
-    }, 500);
+    }, INTERVALS.FADE_DURATION);
   };
 
   //////////////////////////////////////
@@ -106,7 +107,7 @@ const Today = () => {
       setCurrentEvent(selectEventByIndex(events, prevIndex));
       setFade(false);
       startRotation(); // Reset rotation timer
-    }, 500);
+    }, INTERVALS.FADE_DURATION);
   };
 
   //removes HTML codes from the text string
@@ -129,7 +130,7 @@ const Today = () => {
         if (isCacheForToday(date.month, date.day)) {
           const cachedEvents = getCachedEvents();
           if (cachedEvents && cachedEvents.length > 0) {
-            console.log('Using cached today events');
+            // console.log('Using cached today events');
             setEvents(cachedEvents);
             setCurrentEvent(selectRandomEvent(cachedEvents));
             setLoading(false);
@@ -138,9 +139,9 @@ const Today = () => {
         }
 
         // Cache is invalid or empty - fetch from API
-        console.log('Fetching today events from API...');
-        const url = `https://today.zenquotes.io/api/${date.month}/${date.day}`;
-        const proxyUrl = `https://gigantc-com.dan-91d.workers.dev/?url=${encodeURIComponent(url)}`;
+        // console.log('Fetching today events from API...');
+        const url = `${API.TODAY}/${date.month}/${date.day}`;
+        const proxyUrl = getProxyUrl(url);
         const response = await axios.get(proxyUrl);
 
         const fetchedEvents = response.data.data.Events || [];

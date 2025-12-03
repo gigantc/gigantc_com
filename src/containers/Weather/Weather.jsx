@@ -3,6 +3,7 @@ import { debounce } from 'lodash';
 import axios from 'axios';
 import Loader from '@/components/Loader/Loader';
 import weatherCodeDescriptions from './weatherCodeDescriptions';
+import { API, INTERVALS } from '@/config';
 import Sunrise from '@/assets/wi-sunrise.svg?react';
 import Sunset from '@/assets/wi-sunset.svg?react';
 import High from '@/assets/wi-thermometer.svg?react';
@@ -53,12 +54,12 @@ const Weather = () => {
   const fetchWeather = async (latitude, longitude) => {
     try {
       const response = await axios.get(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_gusts_10m_max&timezone=auto`
+        `${API.WEATHER}?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_gusts_10m_max&timezone=auto`
       );
 
       //weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_gusts_10m_max
-      
-      console.log(response.data);
+
+      // console.log(response.data);
       // Extract Current Weather Data
       const { temperature, windspeed, winddirection, weathercode } = response.data.current_weather;
       const currentTempF = convertToFahrenheit(temperature);
@@ -112,7 +113,7 @@ const Weather = () => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          console.log("Location obtained:", position);
+          // console.log("Location obtained:", position);
           const { latitude, longitude } = position.coords;
           // Fetch weather with user's location
           fetchWeather(latitude, longitude); 
@@ -147,7 +148,7 @@ const Weather = () => {
     const interval = setInterval(() => {
       debouncedGetLocation();
       //in milliseconds
-    }, 1800000);
+    }, INTERVALS.WEATHER_REFRESH);
     return () => clearInterval(interval);
 
   }, []);

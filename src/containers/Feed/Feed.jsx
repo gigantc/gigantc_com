@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Loader from '@/components/Loader/Loader';
 import FeedBox from '@/components/FeedBox/FeedBox';
+import { DISPLAY, getProxyUrl } from '@/config';
 import './Feed.scss';
 
 const Feed = ({ feedTitle, feedUrl }) => {
@@ -19,7 +20,7 @@ const Feed = ({ feedTitle, feedUrl }) => {
   // HANDLE LOAD MORE
   const handleLoadMore = () => {
     setStartIndex((prevIndex) => {
-      const nextIndex = prevIndex + 6;
+      const nextIndex = prevIndex + DISPLAY.FEED_ITEMS_PER_PAGE;
       return nextIndex >= feedItems.length ? 0 : nextIndex;
     });
   };
@@ -28,7 +29,7 @@ const Feed = ({ feedTitle, feedUrl }) => {
   //////////////////////////////////////
   // HANDLE REFRESH
   const handleRefresh = () => {
-    console.log('--refreshing--');
+    // console.log('--refreshing--');
     fetchFeed(feedUrl);
     setStartIndex(0);
   }
@@ -63,7 +64,7 @@ const Feed = ({ feedTitle, feedUrl }) => {
   // FETCH RSS FEED
   const fetchFeed = async (url) => {
     try {
-      const proxyUrl = `https://gigantc-com.dan-91d.workers.dev/?url=${encodeURIComponent(url)}`;
+      const proxyUrl = getProxyUrl(url);
       const response = await axios.get(proxyUrl);
   
       const parser = new DOMParser();
@@ -141,7 +142,7 @@ const Feed = ({ feedTitle, feedUrl }) => {
 
   //////////////////////////////////////
   // RENDER
-  const visibleItems = feedItems.slice(startIndex, startIndex + 6);
+  const visibleItems = feedItems.slice(startIndex, startIndex + DISPLAY.FEED_ITEMS_PER_PAGE);
 
   return (
     <section className="feed">

@@ -6,6 +6,7 @@ import svgr from 'vite-plugin-svgr'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   return {
+    base: './', // Use relative paths for assets
     build: {
       sourcemap: false, // Disable source maps in production
       minify: 'esbuild', // Minify code in production

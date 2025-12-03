@@ -1,10 +1,12 @@
 // localStorage service for feed caching
 // Reduces Firebase reads by caching feeds locally
 
-const CACHE_KEY = 'gigantc_feeds_cache';
-const TIMESTAMP_KEY = 'gigantc_feeds_timestamp';
-const NEEDS_REFRESH_KEY = 'gigantc_feeds_needs_refresh';
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+import { CACHE } from '@/config';
+
+const CACHE_KEY = CACHE.KEYS.FEEDS_CACHE;
+const TIMESTAMP_KEY = CACHE.KEYS.FEEDS_TIMESTAMP;
+const NEEDS_REFRESH_KEY = CACHE.KEYS.FEEDS_NEEDS_REFRESH;
+const CACHE_DURATION = CACHE.FEEDS_DURATION;
 
 
 //////////////////////////////////////

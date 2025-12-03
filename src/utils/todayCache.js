@@ -1,8 +1,10 @@
 // localStorage service for Today events caching
 // Reduces API calls by caching historical events for current day
 
-const CACHE_KEY = 'gigantc_today_events';
-const DATE_KEY = 'gigantc_today_date';
+import { CACHE } from '@/config';
+
+const CACHE_KEY = CACHE.KEYS.TODAY_EVENTS;
+const DATE_KEY = CACHE.KEYS.TODAY_DATE;
 
 
 //////////////////////////////////////
