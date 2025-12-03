@@ -1,8 +1,6 @@
 import React from "react";
-
-import More from '../../assets/forward.svg?react';
-import Refresh from '../../assets/refresh.svg?react';
-
+import More from '@/assets/forward.svg?react';
+import Refresh from '@/assets/refresh.svg?react';
 import './FeedBox.scss';
 
 const FeedBox = ({ 

@@ -21,8 +21,7 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        // $fonts: resolve('./src/assets/fonts'),
-        // $headshots: resolve('./src/assets/headshots'),
+        '@': resolve(__dirname, './src'),
       },
     },
     plugins: [

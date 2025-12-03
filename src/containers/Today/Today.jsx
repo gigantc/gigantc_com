@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import Loader from '../../components/Loader/Loader.jsx';
-
+import Loader from '@/components/Loader/Loader';
 import './Today.scss';
 
 const Today = () => {

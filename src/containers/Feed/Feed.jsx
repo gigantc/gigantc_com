@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-
-import Loader from '../../components/Loader/Loader.jsx';
-import FeedBox from '../../components/FeedBox/FeedBox.jsx';
-
+import Loader from '@/components/Loader/Loader';
+import FeedBox from '@/components/FeedBox/FeedBox';
 import './Feed.scss';
 
 const Feed = ({ feedTitle, feedUrl }) => {

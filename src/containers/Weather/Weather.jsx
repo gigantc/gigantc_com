@@ -1,15 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { debounce } from 'lodash';
 import axios from 'axios';
-import Loader from '../../components/Loader/Loader.jsx';
-
-import weatherCodeDescriptions from './weatherCodeDescriptions.jsx';
-
-import Sunrise from '../../assets/wi-sunrise.svg?react';
-import Sunset from '../../assets/wi-sunset.svg?react';
-import High from '../../assets/wi-thermometer.svg?react';
-import Low from '../../assets/wi-thermometer-exterior.svg?react';
-
+import Loader from '@/components/Loader/Loader';
+import weatherCodeDescriptions from './weatherCodeDescriptions';
+import Sunrise from '@/assets/wi-sunrise.svg?react';
+import Sunset from '@/assets/wi-sunset.svg?react';
+import High from '@/assets/wi-thermometer.svg?react';
+import Low from '@/assets/wi-thermometer-exterior.svg?react';
 import './Weather.scss';
 
 
