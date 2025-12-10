@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchFeeds, addFeed, updateFeed, deleteFeed, updateFeedOrder } from '@/firebase/feedService';
 import { invalidateCache } from '@/utils/feedCache';
 import { arrayMove } from '@dnd-kit/sortable';
+import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/containers/Header/Header';
 import Loader from '@/components/Loader/Loader';
 import AddFeedForm from '@/components/AddFeedForm/AddFeedForm';
@@ -15,6 +17,8 @@ const Admin = () => {
   const [feeds, setFeeds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
 
 
   //////////////////////////////////////
@@ -98,6 +102,14 @@ const Admin = () => {
 
 
   //////////////////////////////////////
+  // HANDLE SIGN OUT
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/', { replace: true });
+  };
+
+
+  //////////////////////////////////////
   // RENDER
   return (
     <>
@@ -109,6 +121,13 @@ const Admin = () => {
               <Loader />
             ) : (
               <div className="box">
+                <div className="admin-header">
+                  <h1>Feed Management</h1>
+                  <button className="sign-out-btn" onClick={handleSignOut}>
+                    Sign Out
+                  </button>
+                </div>
+
                 {error && (
                   <div className="error">
                     <p>{error}</p>

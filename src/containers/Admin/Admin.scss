@@ -18,6 +18,47 @@
       padding: 20px;
     }
 
+    .admin-header{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba($highlight, 0.3);
+
+      @include breakpoint(1000px){
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+
+      h1{
+        margin: 0;
+        font: 900 28px/32px $red_hat;
+        color: $bright;
+
+        @include breakpoint(1000px){
+          font-size: 24px;
+        }
+      }
+
+      .sign-out-btn{
+        padding: 10px 20px;
+        background-color: transparent;
+        color: $highlight;
+        border: none;
+        font: 600 14px/18px $red_hat;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.2s;
+        text-transform:uppercase;
+        &:hover{
+          //background-color: $highlight;
+          color: $bright;
+        }
+      }
+    }
+
     h3{
       margin: 0 0 20px 0;
       font: 900 22px/26px $red_hat;
