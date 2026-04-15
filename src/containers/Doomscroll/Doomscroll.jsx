@@ -93,6 +93,7 @@ const Doomscroll = () => {
             pubTimestamp: item.pubTimestamp,
             displayTime: formatStoryTimestamp(item.pubTimestamp),
             excerpt: item.excerpt,
+            imageUrl: item.imageUrl,
           }));
         })
       );

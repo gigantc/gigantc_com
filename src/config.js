@@ -37,6 +37,7 @@ export const CACHE = {
     FEEDS_NEEDS_REFRESH: 'hello-again-feeds-needs-refresh',
     DOOMSCROLL_CACHE: 'hello-again-doomscroll-cache',
     DOOMSCROLL_TIMESTAMP: 'hello-again-doomscroll-timestamp',
+    DOOMSCROLL_VERSION: 'hello-again-doomscroll-version',
     TODAY_CACHE: 'hello-again-today-cache',
     TODAY_EVENTS: 'hello-again-today-cache',
     TODAY_DATE: 'hello-again-today-date',

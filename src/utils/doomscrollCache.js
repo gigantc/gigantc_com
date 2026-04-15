@@ -2,8 +2,10 @@ import { CACHE } from '@/config';
 
 const CACHE_KEY = CACHE.KEYS.DOOMSCROLL_CACHE;
 const TIMESTAMP_KEY = CACHE.KEYS.DOOMSCROLL_TIMESTAMP;
+const VERSION_KEY = CACHE.KEYS.DOOMSCROLL_VERSION;
 const NEEDS_REFRESH_KEY = CACHE.KEYS.FEEDS_NEEDS_REFRESH;
 const CACHE_DURATION = CACHE.FEEDS_DURATION;
+const CACHE_VERSION = '2';
 
 export const getCachedStories = () => {
   try {
@@ -23,6 +25,7 @@ export const setCachedStories = (stories) => {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify(stories));
     localStorage.setItem(TIMESTAMP_KEY, Date.now().toString());
+    localStorage.setItem(VERSION_KEY, CACHE_VERSION);
     return true;
   } catch (error) {
     console.error('Error saving doomscroll cache:', error);
@@ -34,6 +37,11 @@ export const isStoryCacheValid = () => {
   try {
     const needsRefresh = localStorage.getItem(NEEDS_REFRESH_KEY);
     if (needsRefresh === 'true') {
+      return false;
+    }
+
+    const version = localStorage.getItem(VERSION_KEY);
+    if (version !== CACHE_VERSION) {
       return false;
     }
 
@@ -53,6 +61,7 @@ export const clearStoryCache = () => {
   try {
     localStorage.removeItem(CACHE_KEY);
     localStorage.removeItem(TIMESTAMP_KEY);
+    localStorage.removeItem(VERSION_KEY);
     return true;
   } catch (error) {
     console.error('Error clearing doomscroll cache:', error);

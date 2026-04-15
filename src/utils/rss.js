@@ -56,9 +56,99 @@ const getFirstTagText = (node, tagNames) => {
     if (match?.textContent) {
       return match.textContent;
     }
+
+    const fallbackMatch = Array.from(node.getElementsByTagName('*')).find(
+      (element) => element.tagName?.toLowerCase() === tagName.toLowerCase()
+    );
+    if (fallbackMatch?.textContent) {
+      return fallbackMatch.textContent;
+    }
   }
 
   return '';
+};
+
+const getElementsByTagNames = (node, tagNames) => {
+  for (const tagName of tagNames) {
+    const matches = Array.from(node.getElementsByTagName(tagName));
+    if (matches.length > 0) {
+      return matches;
+    }
+
+    const fallbackMatches = Array.from(node.getElementsByTagName('*')).filter(
+      (element) => element.tagName?.toLowerCase() === tagName.toLowerCase()
+    );
+    if (fallbackMatches.length > 0) {
+      return fallbackMatches;
+    }
+  }
+
+  return [];
+};
+
+const getImageCandidatesFromElements = (elements, attributeNames) => {
+  for (const element of elements) {
+    for (const attributeName of attributeNames) {
+      const value = element.getAttribute(attributeName);
+      if (value) {
+        return value;
+      }
+    }
+  }
+
+  return '';
+};
+
+const getAttributeFromElements = (node, tagNames, attributeNames) => {
+  const matches = getElementsByTagNames(node, tagNames);
+  return getImageCandidatesFromElements(matches, attributeNames);
+};
+
+const getLinkEnclosure = (node) => {
+  const links = Array.from(node.getElementsByTagName('link'));
+  const enclosureLink = links.find((link) => link.getAttribute('rel') === 'enclosure');
+  if (!enclosureLink) {
+    return '';
+  }
+
+  return enclosureLink.getAttribute('href') || enclosureLink.getAttribute('url') || '';
+};
+
+const getImageFromDescription = (node, isAtom) => {
+  const htmlSource = isAtom
+    ? getFirstTagText(node, ['content', 'summary'])
+    : getFirstTagText(node, ['content:encoded', 'description', 'encoded']);
+
+  return getImageFromHtml(htmlSource);
+};
+
+const isLikelyImageUrl = (value = '') => {
+  return /\.(avif|gif|jpe?g|png|webp)(\?|$)/i.test(value) || /image/i.test(value);
+};
+
+const pickImageUrl = (candidates) => {
+  return candidates.find((candidate) => candidate && isLikelyImageUrl(candidate)) || candidates.find(Boolean) || '';
+};
+
+const getImageUrl = (node, isAtom) => {
+  const candidates = [
+    getAttributeFromElements(node, ['media:content', 'media:thumbnail', 'thumbnail'], ['url', 'href']),
+    getAttributeFromElements(node, ['enclosure'], ['url', 'href', 'src', 'type']),
+    getLinkEnclosure(node),
+    getImageFromDescription(node, isAtom),
+  ];
+
+  return pickImageUrl(candidates);
+};
+
+const getImageFromHtml = (html = '') => {
+  if (!html) {
+    return '';
+  }
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  return doc.querySelector('img')?.getAttribute('src') || '';
 };
 
 const getExcerpt = (node, isAtom) => {
@@ -69,6 +159,7 @@ const getExcerpt = (node, isAtom) => {
   const cleanedExcerpt = normalizeWhitespace(stripHtml(decodeHtmlEntities(rawExcerpt)));
   return cleanedExcerpt ? truncateText(cleanedExcerpt, 300) : '';
 };
+
 
 const parseTimestamp = (value) => {
   if (!value) {
@@ -106,6 +197,7 @@ export const fetchParsedFeed = async (feedUrl) => {
           pubDate,
           pubTimestamp: parseTimestamp(pubDate),
           excerpt: getExcerpt(entry, true),
+          imageUrl: getImageUrl(entry, true),
         };
       })
     : Array.from(xml.querySelectorAll('item')).map((item, index) => {
@@ -117,6 +209,7 @@ export const fetchParsedFeed = async (feedUrl) => {
           pubDate,
           pubTimestamp: parseTimestamp(pubDate),
           excerpt: getExcerpt(item, false),
+          imageUrl: getImageUrl(item, false),
         };
       });
 
