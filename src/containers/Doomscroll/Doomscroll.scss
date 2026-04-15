@@ -1,0 +1,121 @@
+.doomscrollPage{
+  position:relative;
+  min-height:100vh;
+  padding:60px 0px 40px 0px;
+  background-color:$main;
+  color:$bright;
+  overscroll-behavior-y: contain;
+
+  .wrap{
+    width:min(760px, 100%);
+    padding:0px 18px;
+    box-sizing:border-box;
+  }
+}
+
+.doomscrollList{
+  position:relative;
+  padding-top:8px;
+  will-change:transform;
+  @include trans(.2s);
+}
+
+.doomscrollLoader{
+  min-height:calc(100vh - 120px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.doomscroll-story{
+  padding:18px 0px 20px 0px;
+  border-top:1px solid rgba($highlight, 0.9);
+
+  .meta{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:10px;
+    font:700 14px/14px $red_hat;
+    color:$highlight;
+  }
+
+  .source{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .timestamp{
+    min-width:110px;
+    text-align:right;
+    color:rgba($bright, 0.55);
+  }
+
+  h2{
+    margin:0px 0px 10px 0px;
+    font:500 23px/30px $red_hat;
+    color:$bright;
+  }
+
+  p{
+    margin:0px;
+    font:400 16px/23px $roboto;
+    color:rgba($bright, 0.8);
+  }
+
+  .headline-link{
+    display:block;
+  }
+}
+
+.doomscrollMessage,
+.scrollSentinel{
+  padding:28px 0px 36px 0px;
+  text-align:center;
+  font:500 14px/18px $red_hat;
+  color:rgba($bright, 0.72);
+}
+
+.doomscrollMessage{
+  button{
+    appearance:none;
+    margin-top:14px;
+    border:1px solid rgba($highlight, 0.8);
+    background-color:transparent;
+    color:$bright;
+    padding:10px 16px;
+    font:700 13px/13px $red_hat;
+    cursor:pointer;
+  }
+}
+
+@include breakpoint(700px){
+  .doomscrollPage{
+    .wrap{
+      padding:0px 14px;
+    }
+  }
+
+  .doomscroll-story{
+    padding:16px 0px 18px 0px;
+
+    .meta{
+      margin-bottom:12px;
+      font:700 12px/14px $red_hat;
+    }
+
+    .timestamp{
+      min-width:auto;
+    }
+
+    h2{
+      font:500 18px/24px $red_hat;
+    }
+
+    p{
+      font:400 15px/21px $roboto;
+    }
+  }
+}

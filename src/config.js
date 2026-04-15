@@ -7,7 +7,7 @@
 // API ENDPOINTS
 export const API = {
   WEATHER: 'https://api.open-meteo.com/v1/forecast',
-  TODAY_EVENTS: 'https://zenquotes.io/api/today',
+  TODAY: 'https://today.zenquotes.io/api',
 };
 
 //////////////////////////////////////
@@ -35,7 +35,10 @@ export const CACHE = {
     FEEDS_CACHE: 'hello-again-feeds-cache',
     FEEDS_TIMESTAMP: 'hello-again-feeds-timestamp',
     FEEDS_NEEDS_REFRESH: 'hello-again-feeds-needs-refresh',
+    DOOMSCROLL_CACHE: 'hello-again-doomscroll-cache',
+    DOOMSCROLL_TIMESTAMP: 'hello-again-doomscroll-timestamp',
     TODAY_CACHE: 'hello-again-today-cache',
+    TODAY_EVENTS: 'hello-again-today-cache',
     TODAY_DATE: 'hello-again-today-date',
   },
 };
