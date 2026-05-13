@@ -35,4 +35,40 @@
   .sidebarInner{
     padding: 80px 24px 24px;
   }
+
+  .sidebarNav{
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebarSection{
+    margin: 24px 0px 8px 0px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba($highlight, 0.9);
+    font: 700 12px/12px $red_hat;
+    color: rgba($bright, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+
+    &:first-child{
+      margin-top: 0;
+    }
+  }
+
+  .sidebarNavItem{
+    display: block;
+    padding: 16px 0px 12px 0px;
+    font: 700 16px/16px $red_hat;
+    color: $highlight;
+    text-decoration: none;
+    transition: color 150ms ease;
+
+    &:hover{
+      color: $bright;
+    }
+
+    &.isActive{
+      color: $bright;
+    }
+  }
 }

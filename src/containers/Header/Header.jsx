@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import MenuIcon from '@/assets/menu.svg?react';
+import CloseIcon from '@/assets/close.svg?react';
 import Sidebar from '@/components/Sidebar/Sidebar';
 import './Header.scss';
 
@@ -95,10 +96,11 @@ const Header = () => {
           <button
             type="button"
             className="menuButton"
-            onClick={() => setMenuOpen(true)}
-            aria-label="Open menu"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
           >
-            <MenuIcon />
+            {menuOpen ? <CloseIcon /> : <MenuIcon />}
           </button>
           <div className="title">{greeting}</div>
           <div className="time">

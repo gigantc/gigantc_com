@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import Header from '@/containers/Header/Header';
 import Loader from '@/components/Loader/Loader';
 import DoomscrollStory from '@/components/DoomscrollStory/DoomscrollStory';
@@ -6,6 +7,8 @@ import { fetchFeeds } from '@/firebase/feedService';
 import { getCachedFeeds, isCacheValid, setCachedFeeds } from '@/utils/feedCache';
 import { clearStoryCache, getCachedStories, isStoryCacheValid, setCachedStories } from '@/utils/doomscrollCache';
 import { fetchParsedFeed, formatStoryTimestamp } from '@/utils/rss';
+import { getSavedStories, subscribeToSavedStories } from '@/utils/savedStories';
+import { getViewedStories, subscribeToViewedStories } from '@/utils/viewedStories';
 import { DISPLAY } from '@/config';
 import './Doomscroll.scss';
 
@@ -32,8 +35,42 @@ const sortStories = (stories) => {
 };
 
 const Doomscroll = () => {
+  const [searchParams] = useSearchParams();
+  const upvotedView = searchParams.get('view') === 'upvoted';
+  const viewedView = searchParams.get('view') === 'viewed';
+  const sourceId = searchParams.get('source');
+
+  const [savedStories, setSavedStories] = useState(() => getSavedStories());
+  const [viewedStories, setViewedStories] = useState(() => getViewedStories());
+
+  useEffect(() => {
+    const sync = () => setSavedStories(getSavedStories());
+    return subscribeToSavedStories(sync);
+  }, []);
+
+  useEffect(() => {
+    const sync = () => setViewedStories(getViewedStories());
+    return subscribeToViewedStories(sync);
+  }, []);
+
+  const sortedSavedStories = useMemo(() => {
+    return [...savedStories].sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0));
+  }, [savedStories]);
+
+  const sortedViewedStories = useMemo(() => {
+    return [...viewedStories].sort((a, b) => (b.viewedAt ?? 0) - (a.viewedAt ?? 0));
+  }, [viewedStories]);
+
+  const [feeds, setFeeds] = useState([]);
   const [itemsBySource, setItemsBySource] = useState({});
   const [perSourcePage, setPerSourcePage] = useState(1);
+
+  const sourceFeed = sourceId ? feeds.find((f) => f.id === sourceId) : null;
+  const sourceView = Boolean(sourceId);
+  const sourceStories = useMemo(() => {
+    if (!sourceFeed) return [];
+    return itemsBySource[sourceFeed.feedUrl] ?? [];
+  }, [sourceFeed, itemsBySource]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -77,24 +114,30 @@ const Doomscroll = () => {
       if (!forceRefresh && isStoryCacheValid()) {
         const cached = getCachedStories();
         if (cached && typeof cached === 'object' && !Array.isArray(cached) && Object.keys(cached).length) {
+          if (isCacheValid()) {
+            const cachedFeeds = getCachedFeeds();
+            if (cachedFeeds?.length) setFeeds(cachedFeeds);
+          }
           setItemsBySource(cached);
           setPerSourcePage(1);
           return;
         }
       }
 
-      let feeds;
+      let loadedFeeds;
       if (!forceRefresh && isCacheValid()) {
-        feeds = getCachedFeeds();
+        loadedFeeds = getCachedFeeds();
       }
 
-      if (!feeds?.length) {
-        feeds = await fetchFeeds();
-        setCachedFeeds(feeds);
+      if (!loadedFeeds?.length) {
+        loadedFeeds = await fetchFeeds();
+        setCachedFeeds(loadedFeeds);
       }
+
+      setFeeds(loadedFeeds);
 
       const results = await Promise.allSettled(
-        feeds.map(async (feed) => {
+        loadedFeeds.map(async (feed) => {
           const { items } = await fetchParsedFeed(feed.feedUrl);
           const sortedItems = sortStories(items).map((item) => ({
             id: item.id,
@@ -144,7 +187,7 @@ const Doomscroll = () => {
 
   useEffect(() => {
     const node = loadMoreRef.current;
-    if (!node || loading || refreshing || !hasMoreRounds) {
+    if (!node || loading || refreshing || !hasMoreRounds || upvotedView || viewedView || sourceView) {
       return undefined;
     }
 
@@ -159,10 +202,10 @@ const Doomscroll = () => {
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [loading, refreshing, hasMoreRounds]);
+  }, [loading, refreshing, hasMoreRounds, upvotedView, viewedView, sourceView]);
 
   const handleTouchStart = (event) => {
-    if (window.scrollY > 0 || refreshing) {
+    if (window.scrollY > 0 || refreshing || upvotedView || viewedView || sourceView) {
       touchStartYRef.current = null;
       pullingRef.current = false;
       return;
@@ -212,7 +255,53 @@ const Doomscroll = () => {
       >
         <div className="wrap">
           <section className="doomscrollList" style={{ transform: `translateY(${pullDistance}px)` }}>
-            {loading ? (
+            {upvotedView ? (
+              sortedSavedStories.length === 0 ? (
+                <div className="doomscrollMessage">
+                  <p>No saved stories yet.</p>
+                  <Link to="/doomscroll">Back to feed</Link>
+                </div>
+              ) : (
+                <>
+                  {sortedSavedStories.map((story) => (
+                    <DoomscrollStory key={story.id} story={story} />
+                  ))}
+                  <div className="scrollSentinel">End of saved stories</div>
+                </>
+              )
+            ) : viewedView ? (
+              sortedViewedStories.length === 0 ? (
+                <div className="doomscrollMessage">
+                  <p>No viewed stories yet.</p>
+                  <Link to="/doomscroll">Back to feed</Link>
+                </div>
+              ) : (
+                <>
+                  {sortedViewedStories.map((story) => (
+                    <DoomscrollStory key={story.id} story={story} />
+                  ))}
+                  <div className="scrollSentinel">End of viewed stories</div>
+                </>
+              )
+            ) : sourceView ? (
+              loading ? (
+                <div className="doomscrollLoader">
+                  <Loader />
+                </div>
+              ) : sourceStories.length === 0 ? (
+                <div className="doomscrollMessage">
+                  <p>No stories from this source.</p>
+                  <Link to="/doomscroll">Back to feed</Link>
+                </div>
+              ) : (
+                <>
+                  {sourceStories.map((story) => (
+                    <DoomscrollStory key={story.id} story={story} />
+                  ))}
+                  <div className="scrollSentinel">End of feed</div>
+                </>
+              )
+            ) : loading ? (
               <div className="doomscrollLoader">
                 <Loader />
               </div>
