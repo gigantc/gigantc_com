@@ -22,6 +22,7 @@ export const INTERVALS = {
 // DISPLAY SETTINGS
 export const DISPLAY = {
   FEED_ITEMS_PER_PAGE: 6,
+  DOOMSCROLL_MAX_ITEMS_PER_SOURCE: 6,
 };
 
 //////////////////////////////////////

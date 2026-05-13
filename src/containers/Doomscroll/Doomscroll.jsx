@@ -6,10 +6,10 @@ import { fetchFeeds } from '@/firebase/feedService';
 import { getCachedFeeds, isCacheValid, setCachedFeeds } from '@/utils/feedCache';
 import { clearStoryCache, getCachedStories, isStoryCacheValid, setCachedStories } from '@/utils/doomscrollCache';
 import { fetchParsedFeed, formatStoryTimestamp } from '@/utils/rss';
+import { DISPLAY } from '@/config';
 import './Doomscroll.scss';
 
-const INITIAL_BATCH = 25;
-const BATCH_SIZE = 20;
+const PAGE_SIZE = DISPLAY.DOOMSCROLL_MAX_ITEMS_PER_SOURCE;
 const PULL_THRESHOLD = 90;
 const MAX_PULL_DISTANCE = 140;
 
@@ -32,8 +32,8 @@ const sortStories = (stories) => {
 };
 
 const Doomscroll = () => {
-  const [stories, setStories] = useState([]);
-  const [visibleCount, setVisibleCount] = useState(INITIAL_BATCH);
+  const [itemsBySource, setItemsBySource] = useState({});
+  const [perSourcePage, setPerSourcePage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -43,14 +43,28 @@ const Doomscroll = () => {
   const pullingRef = useRef(false);
 
   const visibleStories = useMemo(() => {
-    return stories.slice(0, visibleCount);
-  }, [stories, visibleCount]);
+    const sources = Object.values(itemsBySource);
+    const out = [];
+    for (let round = 0; round < perSourcePage; round += 1) {
+      const start = round * PAGE_SIZE;
+      const end = start + PAGE_SIZE;
+      const roundItems = sources.flatMap((items) => items.slice(start, end));
+      if (roundItems.length === 0) continue;
+      out.push(...sortStories(roundItems));
+    }
+    return out;
+  }, [itemsBySource, perSourcePage]);
+
+  const hasMoreRounds = useMemo(() => {
+    const cutoff = perSourcePage * PAGE_SIZE;
+    return Object.values(itemsBySource).some((items) => items.length > cutoff);
+  }, [itemsBySource, perSourcePage]);
 
   const loadStories = useCallback(async (forceRefresh = false) => {
     if (forceRefresh) {
       setRefreshing(true);
-      setStories([]);
-      setVisibleCount(INITIAL_BATCH);
+      setItemsBySource({});
+      setPerSourcePage(1);
       setLoading(true);
       clearStoryCache();
     } else {
@@ -61,11 +75,10 @@ const Doomscroll = () => {
 
     try {
       if (!forceRefresh && isStoryCacheValid()) {
-        const cachedStories = getCachedStories();
-        if (cachedStories?.length) {
-          const sortedStories = sortStories(cachedStories);
-          setStories(sortedStories);
-          setVisibleCount(INITIAL_BATCH);
+        const cached = getCachedStories();
+        if (cached && typeof cached === 'object' && !Array.isArray(cached) && Object.keys(cached).length) {
+          setItemsBySource(cached);
+          setPerSourcePage(1);
           return;
         }
       }
@@ -83,7 +96,7 @@ const Doomscroll = () => {
       const results = await Promise.allSettled(
         feeds.map(async (feed) => {
           const { items } = await fetchParsedFeed(feed.feedUrl);
-          return items.map((item) => ({
+          const sortedItems = sortStories(items).map((item) => ({
             id: item.id,
             sourceTitle: feed.feedTitle,
             sourceFeedUrl: feed.feedUrl,
@@ -95,21 +108,24 @@ const Doomscroll = () => {
             excerpt: item.excerpt,
             imageUrl: item.imageUrl,
           }));
+          return { feedUrl: feed.feedUrl, items: sortedItems };
         })
       );
 
-      const mergedStories = results
-        .filter((result) => result.status === 'fulfilled')
-        .flatMap((result) => result.value);
+      const merged = {};
+      for (const result of results) {
+        if (result.status === 'fulfilled' && result.value.items.length) {
+          merged[result.value.feedUrl] = result.value.items;
+        }
+      }
 
-      if (mergedStories.length === 0) {
+      if (Object.keys(merged).length === 0) {
         throw new Error('Failed to load stories.');
       }
 
-      const sortedStories = sortStories(mergedStories);
-      setStories(sortedStories);
-      setCachedStories(sortedStories);
-      setVisibleCount(INITIAL_BATCH);
+      setItemsBySource(merged);
+      setCachedStories(merged);
+      setPerSourcePage(1);
 
       if (results.some((result) => result.status === 'rejected')) {
         console.warn('Some feeds failed to load for doomscroll.');
@@ -128,14 +144,14 @@ const Doomscroll = () => {
 
   useEffect(() => {
     const node = loadMoreRef.current;
-    if (!node || loading || refreshing || visibleCount >= stories.length) {
+    if (!node || loading || refreshing || !hasMoreRounds) {
       return undefined;
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setVisibleCount((current) => Math.min(current + BATCH_SIZE, stories.length));
+          setPerSourcePage((current) => current + 1);
         }
       },
       { rootMargin: '300px 0px' }
@@ -143,7 +159,7 @@ const Doomscroll = () => {
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [loading, refreshing, stories.length, visibleCount]);
+  }, [loading, refreshing, hasMoreRounds]);
 
   const handleTouchStart = (event) => {
     if (window.scrollY > 0 || refreshing) {
@@ -212,7 +228,7 @@ const Doomscroll = () => {
                 ))}
 
                 <div ref={loadMoreRef} className="scrollSentinel">
-                  {visibleCount < stories.length ? 'Loading more stories...' : 'End of feed'}
+                  {hasMoreRounds ? 'Loading more stories...' : 'End of feed'}
                 </div>
               </>
             )}
