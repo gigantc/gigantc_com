@@ -28,7 +28,7 @@
 }
 
 .doomscroll-story{
-  padding:18px 0px 20px 0px;
+  padding: 16px 0px 12px 0px;
   border-top:1px solid rgba($highlight, 0.9);
 
   .meta{
@@ -117,6 +117,54 @@
       object-fit:cover;
     }
   }
+
+  .storyActions{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    margin-top:14px;
+
+    .storyAction{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:34px;
+      height:34px;
+      padding:0;
+      background:transparent;
+      border:0;
+      border-radius:6px;
+      color:rgba($bright, 0.5);
+      cursor:pointer;
+      transition:background-color 150ms ease, color 150ms ease;
+
+      svg{
+        width:18px;
+        height:18px;
+      }
+
+      &--upvote{
+        width:25px;
+        height:25px;
+      }
+
+      &:hover{
+        background-color:rgba($highlight, 0.18);
+        color:$bright;
+      }
+
+      &.isActive{
+        background-color:$bright;
+        color:$dark;
+      }
+
+      &.isActive:hover{
+        background-color:$bright;
+        color:$dark;
+      }
+    }
+  }
 }
 
 .doomscrollMessage,
@@ -148,7 +196,7 @@
   }
 
   .doomscroll-story{
-    padding:16px 0px 18px 0px;
+    padding: 16px 0px 12px 0px;
 
     .meta{
       margin-bottom:12px;

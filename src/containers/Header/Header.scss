@@ -13,25 +13,52 @@
     display:flex;
     align-items: center;
     justify-content: flex-end;
+    .menuButton{
+      display:flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      margin-right: 12px;
+      background: transparent;
+      border: 0;
+      color: $bright;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 150ms ease;
+      svg{
+        width: 20px;
+        height: 20px;
+      }
+      &:hover{
+        background-color: rgba($highlight, 0.2);
+      }
+    }
     .title{
       font: 850 18px/18px $red_hat;
       margin-right: auto;
     }
     .time{
-      width:500px;
       display:flex;
-      align-items: space-between;
-      justify-content: flex-end;
-      span{
-        width:25px;
-        text-align:center;
-        font: 400 18px/18px $red_hat;
-        color:$bright;
-      }
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 2px;
       .date{
-        width:200px;
-        font: 400 18px/18px $red_hat;
+        margin: 0px 0px 5px 0px;
+        font: 400 14px/14px $red_hat;
         color:$highlight;
+      }
+      .clock{
+        display:flex;
+        justify-content: flex-end;
+        span{
+          width:20px;
+          text-align:center;
+          font: 400 14px/14px $red_hat;
+          color:$bright;
+        }
       }
     }
     .weather{

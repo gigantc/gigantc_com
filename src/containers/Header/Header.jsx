@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import MenuIcon from '@/assets/menu.svg?react';
+import Sidebar from '@/components/Sidebar/Sidebar';
 import './Header.scss';
 
 const Header = () => {
@@ -6,6 +8,7 @@ const Header = () => {
   const [greeting, setGreeting] = useState("Hello");
   const [time, setTime] = useState({ hours: "00", minutes: "00", seconds: "00" });
   const [date, setDate] = useState("March 12 1979");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   
 
@@ -89,15 +92,26 @@ const Header = () => {
     <>
       <header className="header">
         <div className="wrap">
+          <button
+            type="button"
+            className="menuButton"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open menu"
+          >
+            <MenuIcon />
+          </button>
           <div className="title">{greeting}</div>
           <div className="time">
             <span className="date">{date}</span>
-            <span>{time.hours}</span>
-            <span>{time.minutes}</span>
-            <span>{time.seconds}</span>
+            <div className="clock">
+              <span>{time.hours}</span>
+              <span>{time.minutes}</span>
+              <span>{time.seconds}</span>
+            </div>
           </div>
         </div>
       </header>
+      <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );
 };
