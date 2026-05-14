@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import MenuIcon from '@/assets/menu.svg?react';
 import CloseIcon from '@/assets/close.svg?react';
 import Sidebar from '@/components/Sidebar/Sidebar';
 import './Header.scss';
 
 const Header = () => {
+
+  const location = useLocation();
+  const isDoomscroll = location.pathname === '/doomscroll';
 
   const [greeting, setGreeting] = useState("Hello");
   const [time, setTime] = useState({ hours: "00", minutes: "00", seconds: "00" });
@@ -91,17 +95,19 @@ const Header = () => {
 
   return (
     <>
-      <header className="header">
+      <header className={`header${isDoomscroll ? ' header--doomscroll' : ''}`}>
         <div className="wrap">
-          <button
-            type="button"
-            className="menuButton"
-            onClick={() => setMenuOpen((open) => !open)}
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-          >
-            {menuOpen ? <CloseIcon /> : <MenuIcon />}
-          </button>
+          {isDoomscroll && (
+            <button
+              type="button"
+              className="menuButton"
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={menuOpen}
+            >
+              {menuOpen ? <CloseIcon /> : <MenuIcon />}
+            </button>
+          )}
           <div className="title">{greeting}</div>
           <div className="time">
             <span className="date">{date}</span>
@@ -113,7 +119,7 @@ const Header = () => {
           </div>
         </div>
       </header>
-      <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
+      {isDoomscroll && <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />}
     </>
   );
 };

@@ -26,5 +26,25 @@
   { "feedTitle": "NPR News", "feedUrl": "https://feeds.npr.org/1001/rss.xml" },
   { "feedTitle": "CBS News", "feedUrl": "https://www.cbsnews.com/latest/rss/main" },
   { "feedTitle": "Stereogum", "feedUrl": "https://www.stereogum.com/feed/" },
-  { "feedTitle": "Consequence", "feedUrl": "https://consequence.net/?feed=rss2" }
+  { "feedTitle": "Consequence", "feedUrl": "https://consequence.net/?feed=rss2" },
+  //test feeds
+  { "feedTitle": "Pitchfork", "feedUrl": "https://pitchfork.com/rss/news/" },
+  { "feedTitle": "BrooklynVegan", "feedUrl": "https://www.brooklynvegan.com/feed/" },
+  { "feedTitle": "NPR Music", "feedUrl": "https://feeds.npr.org/1039/rss.xml" },
+  { "feedTitle": "Aquarium Drunkard", "feedUrl": "https://aquariumdrunkard.com/feed/" },
+  { "feedTitle": "Ars Technica", "feedUrl": "https://feeds.arstechnica.com/arstechnica/index" },
+  { "feedTitle": "Wired", "feedUrl": "https://www.wired.com/feed/rss" },
+  { "feedTitle": "IGN", "feedUrl": "https://feeds.feedburner.com/ign/all" },
+  { "feedTitle": "Kotaku", "feedUrl": "https://kotaku.com/rss" },
+  { "feedTitle": "404 Media", "feedUrl": "https://www.404media.co/rss/" },
+  { "feedTitle": "BBC News", "feedUrl": "https://feeds.bbci.co.uk/news/rss.xml" },
+  { "feedTitle": "ProPublica", "feedUrl": "https://www.propublica.org/feeds/propublica/main" },
+  { "feedTitle": "The Conversation", "feedUrl": "https://theconversation.com/us/articles.atom" },
+  { "feedTitle": "FanGraphs", "feedUrl": "https://blogs.fangraphs.com/feed/" },
+  { "feedTitle": "RotoGraphs", "feedUrl": "https://fantasy.fangraphs.com/feed/" },
+  { "feedTitle": "ESPN MLB", "feedUrl": "https://www.espn.com/espn/rss/mlb/news" },
+  { "feedTitle": "ESPN NFL", "feedUrl": "https://www.espn.com/espn/rss/nfl/news" },
+  { "feedTitle": "Packers.com News", "feedUrl": "https://www.packers.com/rss/news" },
+  { "feedTitle": "Cubs Insider", "feedUrl": "https://www.cubsinsider.com/feed/" },
+  { "feedTitle": "Defector", "feedUrl": "https://defector.com/rss" }
 ]
