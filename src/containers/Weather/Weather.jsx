@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { debounce } from 'lodash';
 import axios from 'axios';
 import Loader from '@/components/Loader/Loader';
@@ -10,46 +10,24 @@ import High from '@/assets/wi-thermometer.svg?react';
 import Low from '@/assets/wi-thermometer-exterior.svg?react';
 import './Weather.scss';
 
+// 360 degrees divided by 16 directions (last value repeats N for wrap-around)
+const WIND_DIRECTIONS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW', 'N'];
 
+
+//////////////////////////////////////
+// CONVERSIONS
+const toFahrenheit = (celsius) => ((celsius * 9) / 5 + 32).toFixed(1);
+const toMPH = (kmh) => (kmh * 0.621371).toFixed(1);
+const toCardinal = (degrees) => WIND_DIRECTIONS[Math.round((degrees % 360) / 22.5)];
+const formatTime = (iso) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
 const Weather = () => {
-
   const [weatherData, setWeatherData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
-
-
-
-  //////////////////////////////////////
-  // WEATHER INFORMATION
-  const getWindDirection = (degrees) => {
-    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW', 'N'];
-    // 360 degrees divided by 16 directions
-    const index = Math.round((degrees % 360) / 22.5);
-    return directions[index];
-  };
-
-  const generateWeatherDescription = () => {
-    const description = weatherCodeDescriptions[weatherData.weatherCode] || "...I guess look out the window.";
-    return `Today you can expect ${description}`;
-  };
-
-  
-
-
-  //////////////////////////////////////
-  // CONVERSIONS
-  const convertToFahrenheit = (celsius) => ((celsius * 9) / 5 + 32).toFixed(1);
-  const convertToMPH = (kmh) =>  (kmh * 0.621371).toFixed(1);
-
-
-
-
-
   //////////////////////////////////////
   // WEATHER FETCHING
-
   // weather icons here: https://erikflowers.github.io/weather-icons/
   const fetchWeather = async (latitude, longitude) => {
     try {
@@ -57,103 +35,66 @@ const Weather = () => {
         `${API.WEATHER}?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_gusts_10m_max&timezone=auto`
       );
 
-      //weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_gusts_10m_max
-
-      // console.log(response.data);
-      // Extract Current Weather Data
       const { temperature, windspeed, winddirection, weathercode } = response.data.current_weather;
-      const currentTempF = convertToFahrenheit(temperature);
-      const windSpeedMph = convertToMPH(windspeed);
-      
-      // Convert degrees to cardinal
-      const windDirectionCardinal = getWindDirection(winddirection);
-  
-      // Extract Daily Weather Data
-      const dailyWeather = response.data.daily;
-      const highTempF = convertToFahrenheit(dailyWeather.temperature_2m_max[0]);
-      const lowTempF = convertToFahrenheit(dailyWeather.temperature_2m_min[0]);
-      const sunrise = new Date(dailyWeather.sunrise[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const sunset = new Date(dailyWeather.sunset[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const windGustsMph = dailyWeather.wind_gusts_10m_max[0] ? convertToMPH(dailyWeather.wind_gusts_10m_max[0]) : "N/A";
+      const daily = response.data.daily;
 
-      // Consolidate Weather Data
-      const data = {
-        currentTempF,
-        highTempF,
-        lowTempF,
+      setWeatherData({
+        currentTempF: toFahrenheit(temperature),
+        highTempF: toFahrenheit(daily.temperature_2m_max[0]),
+        lowTempF: toFahrenheit(daily.temperature_2m_min[0]),
         weatherCode: weathercode,
-        windSpeedMph,
-        windDirection: windDirectionCardinal,
-        windGustsMph,
-        sunrise,
-        sunset,
-      };
-      
-      // Update state with consolidated data
-      setWeatherData(data); 
-      // Clear any previous errors
-      setError(null); 
-    } catch (error) {
-      console.error("Error fetching weather data:", error);
-      setError("Unable to fetch weather data.");
+        windSpeedMph: toMPH(windspeed),
+        windDirection: toCardinal(winddirection),
+        windGustsMph: daily.wind_gusts_10m_max[0] ? toMPH(daily.wind_gusts_10m_max[0]) : 'N/A',
+        sunrise: formatTime(daily.sunrise[0]),
+        sunset: formatTime(daily.sunset[0]),
+      });
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching weather data:', err);
+      setError('Unable to fetch weather data.');
     } finally {
-       // Stop displaying Loader
       setLoading(false);
     }
   };
-  
-
-
-
-
 
   //////////////////////////////////////
   // LOCATION FETCHING
   const getLocation = () => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          // console.log("Location obtained:", position);
-          const { latitude, longitude } = position.coords;
-          // Fetch weather with user's location
-          fetchWeather(latitude, longitude); 
-        },
-        (error) => {
-          if (error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE) {
-            console.warn("Retrying to get location...");
-             // Retry after 5 seconds
-            setTimeout(getLocation, 5000);
-          } else {
-            console.error("Error getting location:", error.message);
-          }
-        }
-      );
-    } else {
-      console.error("Geolocation is not supported by this browser.");
+    if (!('geolocation' in navigator)) {
+      console.error('Geolocation is not supported by this browser.');
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => fetchWeather(coords.latitude, coords.longitude),
+      (err) => {
+        if (err.code === err.TIMEOUT || err.code === err.POSITION_UNAVAILABLE) {
+          console.warn('Retrying to get location...');
+          // Retry after 5 seconds
+          setTimeout(getLocation, 5000);
+        } else {
+          console.error('Error getting location:', err.message);
+        }
+      }
+    );
   };
 
   const debouncedGetLocation = debounce(getLocation, 5000);
-  
 
 
-
-  
   //////////////////////////////////////
   // RUN-TIME
   useEffect(() => {
     debouncedGetLocation();
-
-    //update the weather every 30 minutes
-    const interval = setInterval(() => {
-      debouncedGetLocation();
-      //in milliseconds
-    }, INTERVALS.WEATHER_REFRESH);
+    // Update the weather every 30 minutes
+    const interval = setInterval(debouncedGetLocation, INTERVALS.WEATHER_REFRESH);
     return () => clearInterval(interval);
-
   }, []);
 
-
+  const description = weatherData
+    ? `Today you can expect ${weatherCodeDescriptions[weatherData.weatherCode] || '...I guess look out the window.'}`
+    : '';
 
 
   //////////////////////////////////////
@@ -161,15 +102,14 @@ const Weather = () => {
   return (
     <section className="weather">
       {loading ? (
-        // Show loader while waiting for location and weather data
-        <Loader /> 
+        <Loader />
       ) : (
         <div className="box">
           {error && <p className="error">{error}</p>}
           {weatherData && (
             <div className="text">
               <div className="currentTemp">{weatherData.currentTempF}°</div>
-              <div className="description">{generateWeatherDescription()}</div>
+              <div className="description">{description}</div>
               <div className="wind">
                 Wind <strong>{weatherData.windDirection}</strong> at <strong>{weatherData.windSpeedMph} mph</strong> gusting to <strong>{weatherData.windGustsMph} mph</strong>.
               </div>

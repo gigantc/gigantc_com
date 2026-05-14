@@ -1,23 +1,23 @@
 import { useState } from 'react';
 
+
+//////////////////////////////////////
+// VALIDATE URL
+const isValidUrl = (url) => {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+
 const AddFeedForm = ({ onAddFeed }) => {
   const [feedTitle, setFeedTitle] = useState('');
   const [feedUrl, setFeedUrl] = useState('');
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-
-
-  //////////////////////////////////////
-  // VALIDATE URL
-  const isValidUrl = (url) => {
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
 
   //////////////////////////////////////
   // HANDLE SUBMIT
@@ -42,7 +42,6 @@ const AddFeedForm = ({ onAddFeed }) => {
       // Clear form on success
       setFeedTitle('');
       setFeedUrl('');
-      setFormError('');
     } catch (err) {
       setFormError(err.message);
     } finally {
@@ -59,7 +58,6 @@ const AddFeedForm = ({ onAddFeed }) => {
       <form onSubmit={handleSubmit}>
         <div className="formGroup">
           <input
-            id="feedTitle"
             type="text"
             value={feedTitle}
             onChange={(e) => setFeedTitle(e.target.value)}
@@ -70,7 +68,6 @@ const AddFeedForm = ({ onAddFeed }) => {
 
         <div className="formGroup">
           <input
-            id="feedUrl"
             type="text"
             value={feedUrl}
             onChange={(e) => setFeedUrl(e.target.value)}

@@ -6,14 +6,12 @@ import { fetchFeeds } from '@/firebase/feedService';
 import { getCachedFeeds, setCachedFeeds, isCacheValid } from '@/utils/feedCache';
 import './Home.scss';
 
-// Lazy load Feed component
 const Feed = lazy(() => import('@/containers/Feed/Feed'));
 
 const Home = () => {
   const [feeds, setFeeds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
 
   //////////////////////////////////////
   // FETCH FEEDS (with localStorage caching)
@@ -22,20 +20,18 @@ const Home = () => {
       try {
         // Check if we have valid cached data
         if (isCacheValid()) {
-          const cachedData = getCachedFeeds();
-          if (cachedData && cachedData.length > 0) {
-            // console.log('Using cached feeds (last fetch within 24 hours)');
-            setFeeds(cachedData);
+          const cached = getCachedFeeds();
+          if (cached?.length) {
+            setFeeds(cached);
             setLoading(false);
             return;
           }
         }
 
         // Cache is invalid or empty - fetch from Firebase
-        // console.log('Fetching feeds from Firebase...');
         const data = await fetchFeeds();
         setFeeds(data);
-        setCachedFeeds(data); // Save to cache
+        setCachedFeeds(data);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -65,9 +61,9 @@ const Home = () => {
               <button onClick={() => window.location.reload()}>Retry</button>
             </div>
           ) : (
-            <Suspense fallback={<div>Loading feeds...</div>}>
-              {feeds.map((feed, index) => (
-                <Feed key={feed.id || index} feedTitle={feed.feedTitle} feedUrl={feed.feedUrl} />
+            <Suspense fallback={<div className="feedsLoading">Loading feeds...</div>}>
+              {feeds.map((feed) => (
+                <Feed key={feed.id} feedTitle={feed.feedTitle} feedUrl={feed.feedUrl} />
               ))}
             </Suspense>
           )}
@@ -78,4 +74,3 @@ const Home = () => {
 };
 
 export default Home;
-

@@ -7,8 +7,29 @@ import { getCachedEvents, setCachedEvents, isCacheForToday } from '@/utils/today
 import { API, INTERVALS, getProxyUrl } from '@/config';
 import './Today.scss';
 
-const Today = () => {
+const FALLBACK_EVENT = { year: 'Year Zero', text: 'Uhhh. No factoid found.', link: '#' };
 
+
+//////////////////////////////////////
+// PARSE EVENT
+// Splits an event's text into year + description
+const parseEvent = (event) => {
+  if (!event) return FALLBACK_EVENT;
+  const parts = event.text?.split(/&#8211;|–/);
+  return {
+    year: parts?.[0]?.trim() || FALLBACK_EVENT.year,
+    text: parts?.[1]?.trim() || FALLBACK_EVENT.text,
+    link: event.links?.[1]?.[1] || '#',
+  };
+};
+
+// Strip HTML entities from the text string
+const decodeHtmlEntities = (text) => {
+  const parser = new DOMParser();
+  return parser.parseFromString(`<!doctype html><body>${text}`, 'text/html').body.textContent;
+};
+
+const Today = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState([]);
@@ -17,142 +38,77 @@ const Today = () => {
   const [fade, setFade] = useState(false);
   const rotationTimeoutRef = useRef(null);
 
-
-
-
-  //////////////////////////////////////
-  // GET TODAY'S DATE
-  const getDate = async () => {
-    const today = new Date();
-     // Get month as a number (1-12)
-    const month = today.getMonth() + 1;
-    const day = today.getDate();
-    return { month, day };
-  };
-
-
-
-
-  //////////////////////////////////////
-  // SELECT EVENT BY INDEX
-  const selectEventByIndex = (events, index) => {
-    if (events.length === 0) return { year: "Year Zero", text: "Uhhh. No factoid found.", link: "#" };
-
-    const nextEvent = events[index];
-
-    const parts = nextEvent.text?.split(/&#8211;|–/);
-    const year = parts?.[0]?.trim() || "Year Zero";
-    const text = parts?.[1]?.trim() || "Uhhh. No factoid found.";
-    const link = nextEvent.links?.[1]?.[1] || "#";
-
-    return { year, text, link };
-  };
-
   //////////////////////////////////////
   // SELECT RANDOM EVENT
-  const selectRandomEvent = (events) => {
-    if (events.length === 0) return { year: "Year Zero", text: "Uhhh. No factoid found.", link: "#" };
-    const randomIndex = Math.floor(Math.random() * events.length);
-    setCurrentIndex(randomIndex);
-    return selectEventByIndex(events, randomIndex);
+  const pickRandom = (list) => {
+    if (list.length === 0) return FALLBACK_EVENT;
+    const index = Math.floor(Math.random() * list.length);
+    setCurrentIndex(index);
+    return parseEvent(list[index]);
   };
+
 
   //////////////////////////////////////
   // START AUTO-ROTATION TIMER
   const startRotation = useCallback(() => {
-    // Clear any existing timeout
-    if (rotationTimeoutRef.current) {
-      clearTimeout(rotationTimeoutRef.current);
-    }
+    if (rotationTimeoutRef.current) clearTimeout(rotationTimeoutRef.current);
 
-    // Set new timeout for next rotation
     rotationTimeoutRef.current = setTimeout(async () => {
-      // Trigger fade-out
       setFade(true);
-      // Wait for the fade-out to complete
       await new Promise((resolve) => setTimeout(resolve, INTERVALS.FADE_DURATION));
-      // Update the event with random selection
-      setCurrentEvent(selectRandomEvent(events));
-      // Trigger fade-in
+      setCurrentEvent(pickRandom(events));
       setFade(false);
-      // Continue rotation
       startRotation();
     }, INTERVALS.TODAY_ROTATION);
   }, [events]);
 
   //////////////////////////////////////
-  // NAVIGATE TO NEXT EVENT
-  const handleNext = () => {
+  // NAVIGATE BY DELTA
+  // delta = +1 for next, -1 for previous. Resets the auto-rotation timer.
+  const advance = (delta) => {
     if (events.length === 0) return;
-
     setFade(true);
     setTimeout(() => {
-      const nextIndex = (currentIndex + 1) % events.length;
+      const nextIndex = (currentIndex + delta + events.length) % events.length;
       setCurrentIndex(nextIndex);
-      setCurrentEvent(selectEventByIndex(events, nextIndex));
+      setCurrentEvent(parseEvent(events[nextIndex]));
       setFade(false);
-      startRotation(); // Reset rotation timer
+      startRotation();
     }, INTERVALS.FADE_DURATION);
   };
 
-  //////////////////////////////////////
-  // NAVIGATE TO PREVIOUS EVENT
-  const handlePrevious = () => {
-    if (events.length === 0) return;
-
-    setFade(true);
-    setTimeout(() => {
-      const prevIndex = currentIndex === 0 ? events.length - 1 : currentIndex - 1;
-      setCurrentIndex(prevIndex);
-      setCurrentEvent(selectEventByIndex(events, prevIndex));
-      setFade(false);
-      startRotation(); // Reset rotation timer
-    }, INTERVALS.FADE_DURATION);
-  };
-
-  //removes HTML codes from the text string
-  const decodeHtmlEntities = (text) => {
-    const parser = new DOMParser();
-    const decodedString = parser.parseFromString(`<!doctype html><body>${text}`, 'text/html').body.textContent;
-    return decodedString;
-  };
-
-  
 
   //////////////////////////////////////
   // RUN-TIME
   useEffect(() => {
     const initialize = async () => {
       try {
-        const date = await getDate();
+        const today = new Date();
+        const month = today.getMonth() + 1;
+        const day = today.getDate();
 
         // Check if we have cached events for today
-        if (isCacheForToday(date.month, date.day)) {
-          const cachedEvents = getCachedEvents();
-          if (cachedEvents && cachedEvents.length > 0) {
-            // console.log('Using cached today events');
-            setEvents(cachedEvents);
-            setCurrentEvent(selectRandomEvent(cachedEvents));
+        if (isCacheForToday(month, day)) {
+          const cached = getCachedEvents();
+          if (cached?.length) {
+            setEvents(cached);
+            setCurrentEvent(pickRandom(cached));
             setLoading(false);
             return;
           }
         }
 
         // Cache is invalid or empty - fetch from API
-        // console.log('Fetching today events from API...');
-        const url = `${API.TODAY}/${date.month}/${date.day}`;
-        const proxyUrl = getProxyUrl(url);
+        const proxyUrl = getProxyUrl(`${API.TODAY}/${month}/${day}`);
         const response = await axios.get(proxyUrl);
 
-        const fetchedEvents = response.data.data.Events || [];
-        setEvents(fetchedEvents);
-        setCachedEvents(fetchedEvents, date.month, date.day); // Save to cache
-
-        // Immediately set the first random event
-        setCurrentEvent(selectRandomEvent(fetchedEvents));
+        const fetched = response.data.data.Events || [];
+        setEvents(fetched);
+        setCachedEvents(fetched, month, day);
+        setCurrentEvent(pickRandom(fetched));
       } catch (err) {
-        setError(`Failed to load the feed :(`);
-        console.error(`Error fetching the feed:`, err);
+        setError('Failed to load the feed :(');
+        console.error('Error fetching the feed:', err);
       } finally {
         setLoading(false);
       }
@@ -162,22 +118,14 @@ const Today = () => {
 
     // Cleanup: clear timeout on unmount
     return () => {
-      if (rotationTimeoutRef.current) {
-        clearTimeout(rotationTimeoutRef.current);
-      }
+      if (rotationTimeoutRef.current) clearTimeout(rotationTimeoutRef.current);
     };
   }, []);
 
   // Start rotation when events are loaded
   useEffect(() => {
-    if (events.length > 0) {
-      startRotation();
-    }
+    if (events.length > 0) startRotation();
   }, [events, startRotation]);
-  
-  
-
-
 
 
   //////////////////////////////////////
@@ -191,10 +139,10 @@ const Today = () => {
       ) : (
         <>
           <div className="navigation">
-            <button onClick={handlePrevious} className="navBtn" title="Previous fact">
+            <button onClick={() => advance(-1)} className="navBtn" title="Previous fact">
               <ArrowLeft />
             </button>
-            <button onClick={handleNext} className="navBtn" title="Next fact">
+            <button onClick={() => advance(1)} className="navBtn" title="Next fact">
               <ArrowRight />
             </button>
           </div>

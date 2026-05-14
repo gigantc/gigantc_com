@@ -17,9 +17,7 @@ const FeedsList = ({ feeds, onDragEnd, onEditFeed, onDeleteFeed }) => {
   // Drag and drop sensors
   const sensors = useSensors(
     useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
 
@@ -31,23 +29,11 @@ const FeedsList = ({ feeds, onDragEnd, onEditFeed, onDeleteFeed }) => {
       {feeds.length === 0 ? (
         <p className="noFeeds">No feeds configured yet.</p>
       ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={onDragEnd}
-        >
-          <SortableContext
-            items={feeds.map(f => f.id)}
-            strategy={verticalListSortingStrategy}
-          >
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+          <SortableContext items={feeds.map((f) => f.id)} strategy={verticalListSortingStrategy}>
             <div className="feedsTable">
               {feeds.map((feed) => (
-                <FeedItem
-                  key={feed.id}
-                  feed={feed}
-                  onEdit={onEditFeed}
-                  onDelete={onDeleteFeed}
-                />
+                <FeedItem key={feed.id} feed={feed} onEdit={onEditFeed} onDelete={onDeleteFeed} />
               ))}
             </div>
           </SortableContext>

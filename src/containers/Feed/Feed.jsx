@@ -5,16 +5,17 @@ import { DISPLAY } from '@/config';
 import { fetchParsedFeed, formatStoryTimestamp } from '@/utils/rss';
 import './Feed.scss';
 
+const formatDateTime = (pubDateString) => {
+  const timestamp = Date.parse(pubDateString);
+  return formatStoryTimestamp(Number.isNaN(timestamp) ? null : timestamp);
+};
+
 const Feed = ({ feedTitle, feedUrl }) => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  //all feed items
   const [feedItems, setFeedItems] = useState([]);
-   // Tracks the starting index for displayed items
   const [startIndex, setStartIndex] = useState(0);
-  //the url of the feed
   const [channelLink, setChannelLink] = useState(null);
-
 
   //////////////////////////////////////
   // HANDLE LOAD MORE
@@ -29,10 +30,10 @@ const Feed = ({ feedTitle, feedUrl }) => {
   //////////////////////////////////////
   // HANDLE REFRESH
   const handleRefresh = () => {
-    // console.log('--refreshing--');
     fetchFeed(feedUrl);
     setStartIndex(0);
-  }
+  };
+
 
   //////////////////////////////////////
   // FETCH RSS FEED
@@ -43,21 +44,12 @@ const Feed = ({ feedTitle, feedUrl }) => {
       setFeedItems(items);
       setError(null);
     } catch (err) {
-      setError(`Failed to load the feed :(`);
+      setError('Failed to load the feed :(');
       console.error(`Error fetching ${url}:`, err);
     } finally {
       setLoading(false);
     }
   };
-  
-
-  const formatDateTime = (pubDateString) => {
-    const timestamp = Date.parse(pubDateString);
-    return formatStoryTimestamp(Number.isNaN(timestamp) ? null : timestamp);
-  };
-
-
-
 
   //////////////////////////////////////
   // RUN-TIME
@@ -71,12 +63,6 @@ const Feed = ({ feedTitle, feedUrl }) => {
   }, [feedUrl]);
 
 
-
-
-  
-
-
-
   //////////////////////////////////////
   // RENDER
   const visibleItems = feedItems.slice(startIndex, startIndex + DISPLAY.FEED_ITEMS_PER_PAGE);
@@ -84,9 +70,7 @@ const Feed = ({ feedTitle, feedUrl }) => {
   return (
     <section className="feed">
       {loading ? (
-        // Show loader while waiting for feed data
-        <Loader /> 
-
+        <Loader />
       ) : error ? (
         <div className="box">
           <div className="head">
@@ -94,10 +78,8 @@ const Feed = ({ feedTitle, feedUrl }) => {
           </div>
           <div className="items"><div className="error">{error}</div></div>
         </div>
-
-
       ) : (
-        <FeedBox 
+        <FeedBox
           feedTitle={feedTitle}
           channelLink={channelLink}
           visibleItems={visibleItems}

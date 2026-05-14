@@ -21,12 +21,16 @@ A personalized information dashboard that aggregates multiple RSS feeds and disp
 ### Component Hierarchy
 ```
 App (Router)
-├── Home (Main dashboard with localStorage caching)
+├── Home (Main dashboard with localStorage caching - / route)
 │   ├── Header (Time & greeting)
 │   ├── Weather (Current conditions)
 │   ├── Today (Historical facts with manual navigation)
 │   └── Feed (Dynamic feeds from Firestore)
 │       └── FeedBox (Individual feed display)
+├── Doomscroll (Single-feed scrolling view - /doomscroll route)
+│   ├── Header (shared, with hamburger menu enabled)
+│   ├── Sidebar (feed source nav, saved/viewed views)
+│   └── DoomscrollStory (Individual story card with share/upvote)
 └── Admin (Feed management - /admin route)
     ├── Header (shared with Home)
     ├── AddFeedForm (Add new feeds)
@@ -34,6 +38,15 @@ App (Router)
     │   └── FeedItem (Individual sortable feed with edit/delete)
     └── Admin.jsx (Main orchestrator)
 ```
+
+### Route Isolation — Main Site vs. Doomscroll
+
+`Home`, `Admin`, and `Doomscroll` are **separate states with distinct visual treatments**. They share the `Header` component, but doomscroll-only features must be scoped to the `/doomscroll` route:
+
+- `Header.jsx` uses `useLocation()` to detect `/doomscroll` and conditionally renders the hamburger menu button and `Sidebar` only there.
+- Doomscroll-specific styling lives under a `.header--doomscroll` modifier class (applied to the `<header>` element when on `/doomscroll`). Main-site header styles must NOT be modified to accommodate doomscroll — add a `.header--doomscroll` override block instead.
+- `.wrap` is defined globally in `base.scss` (`width:90%; margin:0 auto;` — centered layout for the main site). Doomscroll uses its own `.wrap` override inside `.doomscrollPage` and `.header--doomscroll`. Do NOT change the global `.wrap`.
+- When adding new doomscroll features that touch shared components, always gate the change behind a route check or a doomscroll-scoped class.
 
 ### Data Sources
 1. **Weather**: Open-Meteo API (geolocation-based, updates every 30 min)
@@ -70,15 +83,22 @@ App (Router)
 ### Main Components
 - `/src/containers/Home/Home.jsx` - Main dashboard layout (fetches feeds from cache/Firestore)
 - `/src/containers/Admin/Admin.jsx` - Feed management orchestrator (add/edit/delete/reorder)
-- `/src/containers/Header/Header.jsx` - Time, date, greeting (time-based)
+- `/src/containers/Doomscroll/Doomscroll.jsx` - Single-feed scrolling view with pull-to-refresh
+- `/src/containers/Header/Header.jsx` - Time, date, greeting (route-aware: hamburger menu only on `/doomscroll`)
 - `/src/containers/Weather/Weather.jsx` - Weather fetching and display
 - `/src/containers/Today/Today.jsx` - Historical events with auto-rotation and manual navigation
 - `/src/containers/Feed/Feed.jsx` - RSS feed fetching and carousel logic
 - `/src/components/FeedBox/FeedBox.jsx` - Individual feed presentation
+- `/src/components/DoomscrollStory/DoomscrollStory.jsx` - Story card with thumbnail, share, upvote
+- `/src/components/Sidebar/Sidebar.jsx` - Slide-in nav for doomscroll (feeds list, saved, viewed)
 - `/src/components/AddFeedForm/AddFeedForm.jsx` - Form for adding new feeds
 - `/src/components/FeedItem/FeedItem.jsx` - Sortable feed item with edit/delete
 - `/src/components/FeedsList/FeedsList.jsx` - Drag-and-drop feed list container
 - `/src/components/Loader/Loader.jsx` - Shared loading component
+- `/src/utils/doomscrollCache.js` - localStorage cache for doomscroll story pool
+- `/src/utils/savedStories.js` - localStorage tracking for upvoted/saved stories
+- `/src/utils/viewedStories.js` - localStorage tracking for already-viewed stories
+- `/src/utils/rss.js` - RSS/ATOM parsing helpers (incl. thumbnail extraction)
 
 ## Design System
 
@@ -186,6 +206,23 @@ The admin interface is available at `/admin` (not linked from main page).
 - Duplicate checking not implemented (user responsibility)
 - Cannot drag while editing a feed
 
+## Doomscroll Page
+
+Available at `/doomscroll`. A single-stream story feed that pulls items from all Firestore-configured RSS feeds and presents them as scrollable cards.
+
+### Features
+- **Story Cards**: Thumbnail + title + source, with share and upvote actions
+- **Sidebar**: Hamburger toggle in the header opens a slide-in sidebar with feed sources, saved (upvoted) stories, and viewed history
+- **Pull-to-Refresh**: Top-of-list pull gesture refreshes the story pool
+- **Pool Caching**: Stories cached in localStorage to avoid re-fetching on every visit
+- **View Tracking**: Stories marked viewed once scrolled past (`viewedStories.js`)
+- **Save Tracking**: Upvoted stories persisted in localStorage (`savedStories.js`)
+
+### Styling Isolation
+- The shared `Header` component adds a `.header--doomscroll` class on this route. Doomscroll-specific header styles (compact stacked clock, hamburger button) live under that scope.
+- The `Sidebar` only mounts on `/doomscroll`.
+- Doomscroll overrides `.wrap` locally (`.doomscrollPage .wrap` and `.header--doomscroll .wrap`). Do not adjust the global `.wrap` in `base.scss`.
+
 ## Common Tasks
 
 ### Adding a New RSS Feed
@@ -216,6 +253,8 @@ npm run lint         # Run ESLint
 ## Current State
 
 ### Recent Changes
+- **Doomscroll Route**: New `/doomscroll` view with story cards, thumbnails, share/upvote, sidebar nav, and pool caching
+- **Header Route-Awareness**: `Header.jsx` detects `/doomscroll` via `useLocation()` and conditionally renders the hamburger menu + Sidebar. Doomscroll-specific styles are scoped under `.header--doomscroll`. The main-site header is unaffected.
 - **localStorage Caching**: Added caching for feeds (24hr) and today events (daily) to minimize API calls
 - **Centralized Configuration**: Created `/src/config.js` with all app constants (API endpoints, intervals, cache settings)
 - **Path Aliases**: Added `@/` alias for cleaner imports (e.g., `@/components/Loader/Loader`)

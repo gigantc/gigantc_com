@@ -4,38 +4,43 @@ import { CSS } from '@dnd-kit/utilities';
 import EditIcon from '@/assets/edit.svg?react';
 import DeleteIcon from '@/assets/delete.svg?react';
 
+
+//////////////////////////////////////
+// VALIDATE URL
+const isValidUrl = (url) => {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+
+// Drag-handle icon used in both view and edit modes
+const DragDots = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+    <circle cx="7" cy="5" r="1.5" />
+    <circle cx="13" cy="5" r="1.5" />
+    <circle cx="7" cy="10" r="1.5" />
+    <circle cx="13" cy="10" r="1.5" />
+    <circle cx="7" cy="15" r="1.5" />
+    <circle cx="13" cy="15" r="1.5" />
+  </svg>
+);
+
 const FeedItem = ({ feed, onEdit, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editUrl, setEditUrl] = useState('');
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: feed.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: feed.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
-
-
-  //////////////////////////////////////
-  // VALIDATE URL
-  const isValidUrl = (url) => {
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
 
   //////////////////////////////////////
   // HANDLE EDIT CLICK
@@ -58,9 +63,7 @@ const FeedItem = ({ feed, onEdit, onDelete }) => {
   //////////////////////////////////////
   // HANDLE SAVE
   const handleSave = async () => {
-    if (!editTitle.trim() || !editUrl.trim()) {
-      return;
-    }
+    if (!editTitle.trim() || !editUrl.trim()) return;
 
     if (!isValidUrl(editUrl)) {
       alert('Please enter a valid URL');
@@ -69,14 +72,11 @@ const FeedItem = ({ feed, onEdit, onDelete }) => {
 
     try {
       await onEdit(feed.id, { feedTitle: editTitle, feedUrl: editUrl });
-      setIsEditing(false);
-      setEditTitle('');
-      setEditUrl('');
+      handleCancel();
     } catch (err) {
       alert(err.message);
     }
   };
-
 
   //////////////////////////////////////
   // HANDLE DELETE
@@ -90,23 +90,11 @@ const FeedItem = ({ feed, onEdit, onDelete }) => {
   //////////////////////////////////////
   // RENDER
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`feedItem ${isDragging ? 'dragging' : ''}`}
-    >
+    <div ref={setNodeRef} style={style} className={`feedItem ${isDragging ? 'dragging' : ''}`}>
       {isEditing ? (
-        // EDIT MODE
         <div className="editMode">
           <div className="dragHandle disabled" title="Cannot drag while editing">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-              <circle cx="7" cy="5" r="1.5" />
-              <circle cx="13" cy="5" r="1.5" />
-              <circle cx="7" cy="10" r="1.5" />
-              <circle cx="13" cy="10" r="1.5" />
-              <circle cx="7" cy="15" r="1.5" />
-              <circle cx="13" cy="15" r="1.5" />
-            </svg>
+            <DragDots />
           </div>
           <div className="editContent">
             <input
@@ -122,44 +110,24 @@ const FeedItem = ({ feed, onEdit, onDelete }) => {
               className="editInput"
             />
             <div className="editActions">
-              <button onClick={handleSave} className="btnSave">
-                Save
-              </button>
-              <button onClick={handleCancel} className="btnCancel">
-                Cancel
-              </button>
+              <button onClick={handleSave} className="btnSave">Save</button>
+              <button onClick={handleCancel} className="btnCancel">Cancel</button>
             </div>
           </div>
         </div>
       ) : (
-        // VIEW MODE
         <div className="viewMode">
           <div className="dragHandle" {...attributes} {...listeners} title="Drag to reorder">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-              <circle cx="7" cy="5" r="1.5" />
-              <circle cx="13" cy="5" r="1.5" />
-              <circle cx="7" cy="10" r="1.5" />
-              <circle cx="13" cy="10" r="1.5" />
-              <circle cx="7" cy="15" r="1.5" />
-              <circle cx="13" cy="15" r="1.5" />
-            </svg>
+            <DragDots />
           </div>
           <div className="feedInfo">
             <h4>{feed.feedTitle}</h4>
           </div>
           <div className="feedActions">
-            <button
-              onClick={handleEditClick}
-              className="btnEdit"
-              title="Edit feed"
-            >
+            <button onClick={handleEditClick} className="btnEdit" title="Edit feed">
               <EditIcon />
             </button>
-            <button
-              onClick={handleDelete}
-              className="btnDelete"
-              title="Delete feed"
-            >
+            <button onClick={handleDelete} className="btnDelete" title="Delete feed">
               <DeleteIcon />
             </button>
           </div>

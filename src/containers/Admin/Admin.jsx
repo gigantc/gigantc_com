@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { arrayMove } from '@dnd-kit/sortable';
 import { fetchFeeds, addFeed, updateFeed, deleteFeed, updateFeedOrder } from '@/firebase/feedService';
 import { invalidateCache } from '@/utils/feedCache';
-import { arrayMove } from '@dnd-kit/sortable';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/containers/Header/Header';
 import Loader from '@/components/Loader/Loader';
@@ -12,6 +12,8 @@ import './Admin.scss';
 
 
 //////////////////////////////////////
+//////////////////////////////////////
+//////////////////////////////////////
 // MAIN ADMIN COMPONENT
 const Admin = () => {
   const [feeds, setFeeds] = useState([]);
@@ -20,17 +22,12 @@ const Admin = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
-
   //////////////////////////////////////
   // FETCH FEEDS ON MOUNT
-  useEffect(() => {
-    loadFeeds();
-  }, []);
-
+  // Admin always fetches fresh data from Firebase (bypasses cache)
   const loadFeeds = async () => {
     try {
       setLoading(true);
-      // Admin always fetches fresh data from Firebase (bypasses cache)
       const data = await fetchFeeds();
       setFeeds(data);
       setError(null);
@@ -41,13 +38,18 @@ const Admin = () => {
     }
   };
 
+  useEffect(() => {
+    loadFeeds();
+  }, []);
+
 
   //////////////////////////////////////
   // HANDLE ADD FEED
   const handleAddFeed = async (feedData) => {
     const newFeed = await addFeed(feedData);
     setFeeds([...feeds, newFeed]);
-    invalidateCache(); // Invalidate cache so home page refreshes on next load
+    // Invalidate cache so home page refreshes on next load
+    invalidateCache();
   };
 
 
@@ -55,10 +57,8 @@ const Admin = () => {
   // HANDLE EDIT FEED
   const handleEditFeed = async (id, feedData) => {
     await updateFeed(id, feedData);
-    setFeeds(feeds.map(f =>
-      f.id === id ? { ...f, ...feedData } : f
-    ));
-    invalidateCache(); // Invalidate cache so home page shows updated feed
+    setFeeds(feeds.map((f) => (f.id === id ? { ...f, ...feedData } : f)));
+    invalidateCache();
   };
 
 
@@ -66,33 +66,28 @@ const Admin = () => {
   // HANDLE DELETE FEED
   const handleDeleteFeed = async (id) => {
     await deleteFeed(id);
-    const newFeeds = feeds.filter(f => f.id !== id);
+    const newFeeds = feeds.filter((f) => f.id !== id);
     setFeeds(newFeeds);
     // Update order after deletion
     await updateFeedOrder(newFeeds);
-    invalidateCache(); // Invalidate cache so home page shows feed removal
+    invalidateCache();
   };
 
 
   //////////////////////////////////////
   // HANDLE DRAG END
-  const handleDragEnd = async (event) => {
-    const { active, over } = event;
-
-    if (!over || active.id === over.id) {
-      return;
-    }
+  const handleDragEnd = async ({ active, over }) => {
+    if (!over || active.id === over.id) return;
 
     const oldIndex = feeds.findIndex((feed) => feed.id === active.id);
     const newIndex = feeds.findIndex((feed) => feed.id === over.id);
-
     const newFeeds = arrayMove(feeds, oldIndex, newIndex);
     setFeeds(newFeeds);
 
     // Update order in Firestore
     try {
       await updateFeedOrder(newFeeds);
-      invalidateCache(); // Invalidate cache so home page shows new order
+      invalidateCache();
     } catch (err) {
       alert('Failed to save new order: ' + err.message);
       // Revert on error
@@ -123,9 +118,7 @@ const Admin = () => {
               <div className="box">
                 <div className="admin-header">
                   <h1>Feed Management</h1>
-                  <button className="sign-out-btn" onClick={handleSignOut}>
-                    Sign Out
-                  </button>
+                  <button className="sign-out-btn" onClick={handleSignOut}>Sign Out</button>
                 </div>
 
                 {error && (
