@@ -14,6 +14,7 @@ export const API = {
 // UPDATE INTERVALS (in milliseconds)
 export const INTERVALS = {
   WEATHER_REFRESH: 30 * 60 * 1000, // 30 minutes
+  MOON_REFRESH: 60 * 60 * 1000, // 1 hour
   TODAY_ROTATION: 19500, // 19.5 seconds
   FADE_DURATION: 500, // 0.5 seconds
 };

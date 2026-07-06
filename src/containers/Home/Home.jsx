@@ -1,6 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import Header from '@/containers/Header/Header';
 import Weather from '@/containers/Weather/Weather';
+import Moon from '@/containers/Moon/Moon';
 import Today from '@/containers/Today/Today';
 import { fetchFeeds } from '@/firebase/feedService';
 import { getCachedFeeds, setCachedFeeds, isCacheValid } from '@/utils/feedCache';
@@ -51,6 +52,7 @@ const Home = () => {
       <div className="homeContainer">
         <div className="wrap">
           <Weather />
+          <Moon />
           <Today />
 
           {loading ? (

@@ -1,7 +1,7 @@
 
 .today{
   position:relative;
-  height:auto; width:calc(50% - 20px);
+  height:auto; width:100%;
   min-height:400px;
   background-color:$box;
   color:$bright;
@@ -12,7 +12,6 @@
   justify-content: center;
   z-index:1;
   @include breakpoint(1000px){
-    width:100%;
     margin:30px 0px 0px 0px;
   }
 

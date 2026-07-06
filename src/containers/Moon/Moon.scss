@@ -1,0 +1,106 @@
+
+.moon{
+  position:relative;
+  height:auto; width:calc(50% - 20px);
+  min-height:460px;
+  background-color:$box;
+  color:$bright;
+  border-top:1px solid rgba($highlight, 0.9);
+  overflow: visible;
+  z-index:1;
+  @include breakpoint(1000px){
+    width:100%;
+  }
+
+  .box{
+    box-sizing:border-box;
+    padding:20px;
+    display:flex;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap:wrap;
+
+    .moonDisc{
+      position:relative;
+      width:75px; height:75px;
+      margin:20px auto;
+      border-radius:50%;
+      overflow:hidden;
+      background-color:$bright;
+      box-shadow: 0 0 24px rgba($highlight, 0.6);
+      .shadow{
+        position:absolute;
+        top:0; left:0;
+        width:100%; height:100%;
+        border-radius:50%;
+        background-color:$main;
+        @include trans(0.5s);
+      }
+    }
+
+    .text{
+      width:100%;
+      .phaseName{
+        text-align:center;
+        width:100%;
+        font: 200 32px/34px $red_hat;
+        color:$bright;
+        margin:10px 0px 10px 0px;
+      }
+      .description{
+        text-align:center;
+        width:100%;
+        font: 400 16px/20px $roboto;
+        color:$highlight;
+        margin:0px 0px 10px 0px;
+      }
+      .nextPhase{
+        text-align:center;
+        width:100%;
+        font: 400 16px/20px $roboto;
+        color:$highlight;
+        strong{
+          font: 700 16px/20px $roboto;
+          color:$highlight;
+        }
+      }
+      .event{
+        text-align:center;
+        width:100%;
+        font: 700 14px/18px $roboto;
+        color:$bright;
+        margin:10px 0px 0px 0px;
+      }
+    }
+
+    .dataRow{
+      display:flex;
+      align-items: center;
+      justify-content: space-between;
+      position:absolute;
+      left:20px; right:20px; bottom:40px;
+      margin:0;
+      span{
+        width:22%;
+      }
+      .icon{
+        display:block;
+        height:40px; width:auto;
+        margin:0px auto 10px;
+        fill: $highlight;
+      }
+      h6{
+        margin:0px 0px 5px 0px;
+        text-align:center;
+        font: 600 12px/12px $red_hat;
+        color:$bright;
+      }
+      p{
+        margin:0px;
+        text-align:center;
+        font: 400 18px/20px $roboto;
+        color: $bright;
+      }
+    }
+  }
+}
