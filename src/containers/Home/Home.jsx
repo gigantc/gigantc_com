@@ -66,8 +66,14 @@ const Home = () => {
             </div>
           ) : (
             <Suspense fallback={<div className="feedsLoading">Loading feeds...</div>}>
-              {feeds.map((feed) => (
-                <Feed key={feed.id} feedTitle={feed.feedTitle} feedUrl={feed.feedUrl} />
+              {feeds.map((item) => (
+                item.type === 'section' ? (
+                  <div key={item.id} className="feedSectionHeading">
+                    <h2>{item.title}</h2>
+                  </div>
+                ) : (
+                  <Feed key={item.id} feedTitle={item.feedTitle} feedUrl={item.feedUrl} />
+                )
               ))}
             </Suspense>
           )}

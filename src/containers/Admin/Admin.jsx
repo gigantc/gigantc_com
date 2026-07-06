@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { arrayMove } from '@dnd-kit/sortable';
-import { fetchFeeds, addFeed, updateFeed, deleteFeed, updateFeedOrder } from '@/firebase/feedService';
+import { fetchFeeds, addFeed, updateFeed, deleteFeed, updateFeedOrder, addSection, updateSection } from '@/firebase/feedService';
 import { invalidateCache } from '@/utils/feedCache';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/containers/Header/Header';
 import Loader from '@/components/Loader/Loader';
 import AddFeedForm from '@/components/AddFeedForm/AddFeedForm';
+import AddSectionForm from '@/components/AddSectionForm/AddSectionForm';
 import FeedsList from '@/components/FeedsList/FeedsList';
 import './Admin.scss';
 
@@ -54,10 +55,24 @@ const Admin = () => {
 
 
   //////////////////////////////////////
-  // HANDLE EDIT FEED
-  const handleEditFeed = async (id, feedData) => {
-    await updateFeed(id, feedData);
-    setFeeds(feeds.map((f) => (f.id === id ? { ...f, ...feedData } : f)));
+  // HANDLE ADD SECTION
+  const handleAddSection = async (sectionData) => {
+    const newSection = await addSection(sectionData);
+    setFeeds([...feeds, newSection]);
+    invalidateCache();
+  };
+
+
+  //////////////////////////////////////
+  // HANDLE EDIT (routes to feed or section based on item type)
+  const handleEditFeed = async (id, itemData) => {
+    const target = feeds.find((f) => f.id === id);
+    if (target?.type === 'section') {
+      await updateSection(id, itemData);
+    } else {
+      await updateFeed(id, itemData);
+    }
+    setFeeds(feeds.map((f) => (f.id === id ? { ...f, ...itemData } : f)));
     invalidateCache();
   };
 
@@ -129,6 +144,7 @@ const Admin = () => {
                 )}
 
                 <AddFeedForm onAddFeed={handleAddFeed} />
+                <AddSectionForm onAddSection={handleAddSection} />
 
                 <FeedsList
                   feeds={feeds}

@@ -197,6 +197,18 @@
         border-color: rgba($highlight, 0.6);
       }
 
+      &.sectionItem{
+        background-color: rgba($highlight, 0.15);
+        padding: 14px 20px;
+        .sectionTitle{
+          margin: 0;
+          font: 900 20px/24px $red_hat;
+          color: $bright;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+      }
+
       // VIEW MODE
       .viewMode{
         display: flex;

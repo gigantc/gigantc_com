@@ -30,6 +30,7 @@ const DragDots = () => (
 );
 
 const FeedItem = ({ feed, onEdit, onDelete }) => {
+  const isSection = feed.type === 'section';
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editUrl, setEditUrl] = useState('');
@@ -46,8 +47,12 @@ const FeedItem = ({ feed, onEdit, onDelete }) => {
   // HANDLE EDIT CLICK
   const handleEditClick = () => {
     setIsEditing(true);
-    setEditTitle(feed.feedTitle);
-    setEditUrl(feed.feedUrl);
+    if (isSection) {
+      setEditTitle(feed.title);
+    } else {
+      setEditTitle(feed.feedTitle);
+      setEditUrl(feed.feedUrl);
+    }
   };
 
 
@@ -63,15 +68,19 @@ const FeedItem = ({ feed, onEdit, onDelete }) => {
   //////////////////////////////////////
   // HANDLE SAVE
   const handleSave = async () => {
-    if (!editTitle.trim() || !editUrl.trim()) return;
-
-    if (!isValidUrl(editUrl)) {
-      alert('Please enter a valid URL');
-      return;
-    }
+    if (!editTitle.trim()) return;
 
     try {
-      await onEdit(feed.id, { feedTitle: editTitle, feedUrl: editUrl });
+      if (isSection) {
+        await onEdit(feed.id, { title: editTitle });
+      } else {
+        if (!editUrl.trim()) return;
+        if (!isValidUrl(editUrl)) {
+          alert('Please enter a valid URL');
+          return;
+        }
+        await onEdit(feed.id, { feedTitle: editTitle, feedUrl: editUrl });
+      }
       handleCancel();
     } catch (err) {
       alert(err.message);
@@ -81,8 +90,9 @@ const FeedItem = ({ feed, onEdit, onDelete }) => {
   //////////////////////////////////////
   // HANDLE DELETE
   const handleDelete = () => {
-    if (confirm(`Delete "${feed.feedTitle}"?`)) {
-      onDelete(feed.id, feed.feedTitle);
+    const label = isSection ? feed.title : feed.feedTitle;
+    if (confirm(`Delete "${label}"?`)) {
+      onDelete(feed.id, label);
     }
   };
 
@@ -90,7 +100,7 @@ const FeedItem = ({ feed, onEdit, onDelete }) => {
   //////////////////////////////////////
   // RENDER
   return (
-    <div ref={setNodeRef} style={style} className={`feedItem ${isDragging ? 'dragging' : ''}`}>
+    <div ref={setNodeRef} style={style} className={`feedItem ${isSection ? 'sectionItem' : ''} ${isDragging ? 'dragging' : ''}`}>
       {isEditing ? (
         <div className="editMode">
           <div className="dragHandle disabled" title="Cannot drag while editing">
@@ -102,13 +112,17 @@ const FeedItem = ({ feed, onEdit, onDelete }) => {
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
               className="editInput"
+              placeholder={isSection ? 'Section Title' : 'Feed Title'}
             />
-            <input
-              type="text"
-              value={editUrl}
-              onChange={(e) => setEditUrl(e.target.value)}
-              className="editInput"
-            />
+            {!isSection && (
+              <input
+                type="text"
+                value={editUrl}
+                onChange={(e) => setEditUrl(e.target.value)}
+                className="editInput"
+                placeholder="Feed URL"
+              />
+            )}
             <div className="editActions">
               <button onClick={handleSave} className="btnSave">Save</button>
               <button onClick={handleCancel} className="btnCancel">Cancel</button>
@@ -121,13 +135,17 @@ const FeedItem = ({ feed, onEdit, onDelete }) => {
             <DragDots />
           </div>
           <div className="feedInfo">
-            <h4>{feed.feedTitle}</h4>
+            {isSection ? (
+              <h3 className="sectionTitle">{feed.title}</h3>
+            ) : (
+              <h4>{feed.feedTitle}</h4>
+            )}
           </div>
           <div className="feedActions">
-            <button onClick={handleEditClick} className="btnEdit" title="Edit feed">
+            <button onClick={handleEditClick} className="btnEdit" title={isSection ? 'Edit section' : 'Edit feed'}>
               <EditIcon />
             </button>
-            <button onClick={handleDelete} className="btnDelete" title="Delete feed">
+            <button onClick={handleDelete} className="btnDelete" title={isSection ? 'Delete section' : 'Delete feed'}>
               <DeleteIcon />
             </button>
           </div>

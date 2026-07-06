@@ -108,7 +108,62 @@ export const deleteFeed = async (id) => {
 
 
 //////////////////////////////////////
-// UPDATE FEED ORDER (for drag and drop)
+// ADD NEW SECTION DIVIDER
+export const addSection = async (sectionData) => {
+  try {
+    if (!sectionData.title) {
+      throw new Error('Section title is required');
+    }
+
+    const querySnapshot = await getDocs(collection(db, COLLECTION_NAME));
+    const currentCount = querySnapshot.size;
+
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+      type: 'section',
+      title: sectionData.title.trim(),
+      order: currentCount,
+    });
+
+    return {
+      id: docRef.id,
+      type: 'section',
+      title: sectionData.title.trim(),
+      order: currentCount,
+    };
+  } catch (error) {
+    console.error('Error adding section:', error);
+    throw new Error(error.message || 'Failed to add section. Please try again.');
+  }
+};
+
+
+//////////////////////////////////////
+// UPDATE EXISTING SECTION
+export const updateSection = async (id, sectionData) => {
+  try {
+    if (!sectionData.title) {
+      throw new Error('Section title is required');
+    }
+
+    const sectionRef = doc(db, COLLECTION_NAME, id);
+    await updateDoc(sectionRef, {
+      title: sectionData.title.trim(),
+    });
+
+    return {
+      id,
+      type: 'section',
+      title: sectionData.title.trim(),
+    };
+  } catch (error) {
+    console.error('Error updating section:', error);
+    throw new Error('Failed to update section. Please try again.');
+  }
+};
+
+
+//////////////////////////////////////
+// UPDATE FEED ORDER (for drag and drop) — works on mixed feed/section items
 export const updateFeedOrder = async (feeds) => {
   try {
     // Update each feed's order field in Firestore
