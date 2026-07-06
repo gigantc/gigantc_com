@@ -23,10 +23,11 @@
   .marketTile{
     flex:1;
     box-sizing:border-box;
-    padding:16px 16px 16px 16px;
+    padding:16px;
     background-color:$box;
     border-top:1px solid rgba($highlight, 0.9);
-    min-height:120px;
+    display:flex;
+    flex-direction:column;
 
     .tileHead{
       display:flex;
@@ -42,14 +43,42 @@
       text-transform:uppercase;
     }
 
+    .marketState{
+      font: 400 12px/14px $roboto;
+      color: rgba($bright, 0.5);
+      text-transform:none;
+      letter-spacing:0;
+    }
+
     .change{
       font: 700 12px/14px $roboto;
       color:$highlight;
+      &.up{
+        color:$bright;
+      }
     }
 
     .price{
-      font: 200 28px/32px $red_hat;
+      font: 200 32px/34px $red_hat;
       color:$bright;
+      margin:0px 0px 12px 0px;
     }
+
+    .tileFoot{
+      margin-top:auto;
+      font: 400 10px/14px $roboto;
+      color:$highlight;
+      strong{
+        font-weight:700;
+        color:$highlight;
+      }
+    }
+  }
+
+  .error{
+    padding:20px;
+    font: 400 14px/20px $roboto;
+    color:$highlight;
+    text-align:center;
   }
 }
