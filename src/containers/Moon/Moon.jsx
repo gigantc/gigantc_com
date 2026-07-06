@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Loader from '@/components/Loader/Loader';
+import MoonIcon from '@/components/MoonIcon/MoonIcon';
 import { getMoonData } from '@/utils/moon';
 import { getMoonEvent } from '@/utils/moonAlmanac';
 import { INTERVALS } from '@/config';
@@ -49,12 +50,7 @@ const Moon = () => {
       ) : (
         <div className="box">
           <div className="moonDisc">
-            <div
-              className="shadow"
-              style={{
-                transform: `translateX(${moonData.waxing ? -moonData.illumination : moonData.illumination}%)`,
-              }}
-            />
+            <MoonIcon illumination={moonData.illumination} waxing={moonData.waxing} />
           </div>
           <div className="text">
             <div className="phaseName">{moonData.phaseName}</div>
