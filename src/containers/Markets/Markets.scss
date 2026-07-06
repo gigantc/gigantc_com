@@ -1,0 +1,55 @@
+
+.markets{
+  position:relative;
+  height:auto; width:calc(50% - 20px);
+  min-height:400px;
+  color:$bright;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  @include breakpoint(1000px){
+    width:100%;
+  }
+
+  .marketsRow{
+    display:flex;
+    flex:1;
+    gap:20px;
+    @include breakpoint(1000px){
+      flex-direction:column;
+    }
+  }
+
+  .marketTile{
+    flex:1;
+    box-sizing:border-box;
+    padding:16px 16px 16px 16px;
+    background-color:$box;
+    border-top:1px solid rgba($highlight, 0.9);
+    min-height:120px;
+
+    .tileHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin:0px 0px 8px 0px;
+    }
+
+    .symbol{
+      font: 700 12px/14px $red_hat;
+      letter-spacing:0.05em;
+      color:$bright;
+      text-transform:uppercase;
+    }
+
+    .change{
+      font: 700 12px/14px $roboto;
+      color:$highlight;
+    }
+
+    .price{
+      font: 200 28px/32px $red_hat;
+      color:$bright;
+    }
+  }
+}
