@@ -19,7 +19,7 @@ const parseEvent = (event) => {
   return {
     year: parts?.[0]?.trim() || FALLBACK_EVENT.year,
     text: parts?.[1]?.trim() || FALLBACK_EVENT.text,
-    link: event.links?.[1]?.[1] || '#',
+    link: event.links?.[1]?.url || '#',
   };
 };
 
@@ -29,22 +29,42 @@ const decodeHtmlEntities = (text) => {
   return parser.parseFromString(`<!doctype html><body>${text}`, 'text/html').body.textContent;
 };
 
+// Pick a random index into a list, or -1 if the list is empty
+const pickRandomIndex = (list) => {
+  if (list.length === 0) return -1;
+  return Math.floor(Math.random() * list.length);
+};
+
 const Today = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  // history holds the sequence of event indices actually shown to the user,
+  // so Back/Forward replay that sequence instead of walking the raw list.
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(0);
   const [currentEvent, setCurrentEvent] = useState({ year: null, text: null, link: null });
   const [fade, setFade] = useState(false);
   const rotationTimeoutRef = useRef(null);
+  // Read fresh state from inside the recursive rotation timeout without
+  // needing to tear down and recreate the timer on every state change.
+  const stateRef = useRef({ events: [], history: [], historyIndex: 0 });
+
+  useEffect(() => {
+    stateRef.current = { events, history, historyIndex };
+  }, [events, history, historyIndex]);
+
 
   //////////////////////////////////////
-  // SELECT RANDOM EVENT
-  const pickRandom = (list) => {
-    if (list.length === 0) return FALLBACK_EVENT;
-    const index = Math.floor(Math.random() * list.length);
-    setCurrentIndex(index);
-    return parseEvent(list[index]);
+  // APPEND RANDOM FACT
+  // Picks a new random fact, appends it to history, and displays it
+  const appendRandomFact = () => {
+    const { events: evts, history: hist } = stateRef.current;
+    const index = pickRandomIndex(evts);
+    const newHistory = [...hist, index];
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+    setCurrentEvent(parseEvent(evts[index]));
   };
 
 
@@ -54,24 +74,42 @@ const Today = () => {
     if (rotationTimeoutRef.current) clearTimeout(rotationTimeoutRef.current);
 
     rotationTimeoutRef.current = setTimeout(async () => {
+      const { history: hist, historyIndex: idx } = stateRef.current;
+
+      // Pause auto-rotation while the user is browsing back through history
+      if (idx < hist.length - 1) {
+        startRotation();
+        return;
+      }
+
       setFade(true);
       await new Promise((resolve) => setTimeout(resolve, INTERVALS.FADE_DURATION));
-      setCurrentEvent(pickRandom(events));
+      appendRandomFact();
       setFade(false);
       startRotation();
     }, INTERVALS.TODAY_ROTATION);
-  }, [events]);
+  }, []);
 
   //////////////////////////////////////
   // NAVIGATE BY DELTA
   // delta = +1 for next, -1 for previous. Resets the auto-rotation timer.
   const advance = (delta) => {
-    if (events.length === 0) return;
+    const { events: evts, history: hist, historyIndex: idx } = stateRef.current;
+    if (evts.length === 0) return;
+
     setFade(true);
     setTimeout(() => {
-      const nextIndex = (currentIndex + delta + events.length) % events.length;
-      setCurrentIndex(nextIndex);
-      setCurrentEvent(parseEvent(events[nextIndex]));
+      if (delta < 0) {
+        const prevIndex = Math.max(0, idx - 1);
+        setHistoryIndex(prevIndex);
+        setCurrentEvent(parseEvent(evts[hist[prevIndex]]));
+      } else if (idx < hist.length - 1) {
+        const nextIndex = idx + 1;
+        setHistoryIndex(nextIndex);
+        setCurrentEvent(parseEvent(evts[hist[nextIndex]]));
+      } else {
+        appendRandomFact();
+      }
       setFade(false);
       startRotation();
     }, INTERVALS.FADE_DURATION);
@@ -91,8 +129,11 @@ const Today = () => {
         if (isCacheForToday(month, day)) {
           const cached = getCachedEvents();
           if (cached?.length) {
+            const index = pickRandomIndex(cached);
             setEvents(cached);
-            setCurrentEvent(pickRandom(cached));
+            setHistory([index]);
+            setHistoryIndex(0);
+            setCurrentEvent(parseEvent(cached[index]));
             setLoading(false);
             return;
           }
@@ -103,9 +144,12 @@ const Today = () => {
         const response = await axios.get(proxyUrl);
 
         const fetched = response.data.data.Events || [];
+        const index = pickRandomIndex(fetched);
         setEvents(fetched);
         setCachedEvents(fetched, month, day);
-        setCurrentEvent(pickRandom(fetched));
+        setHistory([index]);
+        setHistoryIndex(0);
+        setCurrentEvent(parseEvent(fetched[index]));
       } catch (err) {
         setError('Failed to load the feed :(');
         console.error('Error fetching the feed:', err);
@@ -139,7 +183,7 @@ const Today = () => {
       ) : (
         <>
           <div className="navigation">
-            <button onClick={() => advance(-1)} className="navBtn" title="Previous fact">
+            <button onClick={() => advance(-1)} className="navBtn" title="Previous fact" disabled={historyIndex === 0}>
               <ArrowLeft />
             </button>
             <button onClick={() => advance(1)} className="navBtn" title="Next fact">

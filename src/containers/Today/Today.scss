@@ -46,6 +46,16 @@
       fill: $bright;
       @include trans(0.2s);
     }
+
+    &:disabled{
+      cursor: default;
+      svg{
+        fill: rgba($highlight, 0.35);
+      }
+      &:hover svg{
+        fill: rgba($highlight, 0.35);
+      }
+    }
   }
 
   .error{
