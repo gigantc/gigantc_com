@@ -147,6 +147,14 @@ const Sidebar = ({ open, onClose }) => {
 
             <h3 className="sidebarSection">Feeds</h3>
             {feeds.map((feed) => {
+              if (feed.type === 'section') {
+                return (
+                  <h3 key={feed.id} className="sidebarSection sidebarSection--sub">
+                    {feed.title}
+                  </h3>
+                );
+              }
+
               const isActive = onDoomscroll && sourceId === feed.id;
               return (
                 <Link

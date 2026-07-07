@@ -55,6 +55,12 @@
     }
   }
 
+  .sidebarSection--sub{
+    border-bottom: none;
+    margin: 16px 0px 0px 0px;
+    padding-bottom: 0;
+  }
+
   .sidebarNavItem{
     display: block;
     padding: 16px 0px 12px 0px;

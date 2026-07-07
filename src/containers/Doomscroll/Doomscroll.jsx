@@ -102,16 +102,16 @@ const Doomscroll = () => {
 
   //////////////////////////////////////
   // PAGINATED ROUND-ROBIN FEED
-  // Walks each source in rounds of PAGE_SIZE so no single feed dominates
+  // Takes one story at a time from each source (so a fast-publishing feed
+  // can't cluster its stories together), then sorts each of those small
+  // per-depth batches by post time.
   const visibleStories = useMemo(() => {
     const sources = Object.values(itemsBySource);
+    const maxDepth = perSourcePage * PAGE_SIZE;
     const out = [];
-    for (let round = 0; round < perSourcePage; round += 1) {
-      const start = round * PAGE_SIZE;
-      const end = start + PAGE_SIZE;
-      const roundItems = sources.flatMap((items) => items.slice(start, end));
-      if (roundItems.length === 0) continue;
-      out.push(...sortByTimestampDesc(roundItems));
+    for (let depth = 0; depth < maxDepth; depth += 1) {
+      const round = sources.map((items) => items[depth]).filter(Boolean);
+      out.push(...sortByTimestampDesc(round));
     }
     return out;
   }, [itemsBySource, perSourcePage]);
