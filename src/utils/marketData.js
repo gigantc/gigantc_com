@@ -3,6 +3,8 @@
  *  - Stocks (S&P 500, DOW, NASDAQ) via Yahoo Finance chart endpoint,
  *    routed through the existing Cloudflare Worker CORS proxy.
  *  - Crypto (BTC, ETH) via the CoinGecko public API (browser CORS enabled).
+ *
+ * Results are cached in localStorage for 10 minutes to minimize API calls.
  */
 
 import axios from 'axios';
@@ -18,6 +20,10 @@ const CRYPTO_IDS = [
   { symbol: 'BTC', id: 'bitcoin' },
   { symbol: 'ETH', id: 'ethereum' },
 ];
+
+const CACHE_KEY = 'hello-again-market-cache';
+const CACHE_TIMESTAMP_KEY = 'hello-again-market-timestamp';
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
 const fetchYahooQuote = async ({ symbol, ticker }) => {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=2d`;
@@ -65,10 +71,35 @@ const fetchCryptoQuotes = async () => {
   });
 };
 
+const readCache = () => {
+  try {
+    const ts = Number(localStorage.getItem(CACHE_TIMESTAMP_KEY));
+    if (!ts || Date.now() - ts > CACHE_TTL) return null;
+    const raw = localStorage.getItem(CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeCache = (data) => {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    localStorage.setItem(CACHE_TIMESTAMP_KEY, String(Date.now()));
+  } catch {
+    // ignore quota / private-mode errors
+  }
+};
+
 export const fetchMarketData = async () => {
+  const cached = readCache();
+  if (cached) return cached;
+
   const [stocks, crypto] = await Promise.all([
     Promise.all(YAHOO_TICKERS.map(fetchYahooQuote)),
     fetchCryptoQuotes(),
   ]);
-  return { stocks, crypto };
+  const result = { stocks, crypto };
+  writeCache(result);
+  return result;
 };

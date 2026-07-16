@@ -49,7 +49,7 @@ export const CACHE = {
 //////////////////////////////////////
 // RSS FEED PROXY
 // Cloudflare Worker that handles CORS for RSS feeds
-const PROXY_URL = 'https://gigantc-com.dan-91d.workers.dev/';
+const PROXY_URL = 'https://gigantccom.dan-91d.workers.dev/';
 
 /**
  * Generate proxy URL for RSS feed

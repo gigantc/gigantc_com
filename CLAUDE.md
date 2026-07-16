@@ -51,7 +51,7 @@ App (Router)
 ### Data Sources
 1. **Weather**: Open-Meteo API (geolocation-based, updates every 30 min)
 2. **Historical Facts**: Zenquotes.io API (rotates every 20 seconds)
-3. **RSS Feeds**: Dynamic feeds fetched from Firebase Firestore, proxied via Cloudflare Worker at `https://gigantc-com.dan-91d.workers.dev/`
+3. **RSS Feeds**: Dynamic feeds fetched from Firebase Firestore, proxied via Cloudflare Worker at `https://gigantccom.dan-91d.workers.dev/`
 4. **Feed Configuration**: Firebase Firestore `feeds` collection (managed via /admin page)
 
 ### State Management
@@ -130,7 +130,7 @@ All intervals are configured in `/src/config.js` for easy modification:
 
 ## RSS Feed Proxy
 
-The Cloudflare Worker proxy at `https://gigantc-com.dan-91d.workers.dev/` handles CORS for RSS feeds:
+The Cloudflare Worker proxy at `https://gigantccom.dan-91d.workers.dev/` handles CORS for RSS feeds:
 - Accepts `?url={encodeURIComponent(feedUrl)}` parameter
 - Fetches the feed and adds appropriate CORS headers
 - Required because most RSS feeds don't have CORS headers for browser access
