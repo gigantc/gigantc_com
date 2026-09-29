@@ -25,7 +25,6 @@ const MARKET_STATE_LABELS = {
 
 const MarketTile = ({ symbol, price, changePercent, prevClose, dayLow, dayHigh, marketState }) => {
   const stateLabel = MARKET_STATE_LABELS[marketState];
-  const prevLabel = marketState === 'CRYPTO' ? '24h ago' : 'Prev';
 
   return (
     <div className="marketTile">
@@ -38,7 +37,7 @@ const MarketTile = ({ symbol, price, changePercent, prevClose, dayLow, dayHigh, 
       </div>
       <div className="price">{formatPrice(price)}</div>
       <div className="tileFoot">
-        <div>{prevLabel}: <strong>{formatPrice(prevClose)}</strong></div>
+        <div>Prev: <strong>{formatPrice(prevClose)}</strong></div>
         <div>Range: <strong>{formatPrice(dayLow)} – {formatPrice(dayHigh)}</strong></div>
       </div>
     </div>

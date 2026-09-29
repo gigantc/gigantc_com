@@ -2,7 +2,8 @@
  * Live market data:
  *  - Stocks (S&P 500, DOW, NASDAQ) via Yahoo Finance chart endpoint,
  *    routed through the existing Cloudflare Worker CORS proxy.
- *  - Crypto (BTC, ETH) via the CoinGecko public API (browser CORS enabled).
+ *  - Crypto (BTC, ETH) via the same Yahoo endpoint (BTC-USD / ETH-USD).
+ *    CoinGecko was dropped: it 403s requests from the worker and many clients.
  *
  * Results are cached in localStorage for 10 minutes to minimize API calls.
  */
@@ -16,23 +17,34 @@ const YAHOO_TICKERS = [
   { symbol: 'NASDAQ', ticker: '^IXIC' },
 ];
 
-const CRYPTO_IDS = [
-  { symbol: 'BTC', id: 'bitcoin' },
-  { symbol: 'ETH', id: 'ethereum' },
+const CRYPTO_TICKERS = [
+  { symbol: 'BTC', ticker: 'BTC-USD' },
+  { symbol: 'ETH', ticker: 'ETH-USD' },
 ];
 
-const CACHE_KEY = 'hello-again-market-cache';
-const CACHE_TIMESTAMP_KEY = 'hello-again-market-timestamp';
+const CACHE_KEY = 'hello-again-market-cache-v3';
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
-const fetchYahooQuote = async ({ symbol, ticker }) => {
+// The chart endpoint doesn't return marketState, so derive it from the
+// current trading period windows (unix seconds).
+const deriveMarketState = (periods) => {
+  if (!periods) return undefined;
+  const now = Date.now() / 1000;
+  const within = (p) => p && now >= p.start && now < p.end;
+  if (within(periods.regular)) return 'REGULAR';
+  if (within(periods.pre)) return 'PRE';
+  if (within(periods.post)) return 'POST';
+  return 'CLOSED';
+};
+
+const fetchYahooQuote = async ({ symbol, ticker }, isCrypto = false) => {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=2d`;
   const response = await axios.get(getProxyUrl(url));
   const meta = response.data?.chart?.result?.[0]?.meta;
-  if (!meta) throw new Error(`No Yahoo meta for ${symbol}`);
+  if (!meta?.regularMarketPrice) throw new Error(`No Yahoo meta for ${symbol}`);
 
   const price = meta.regularMarketPrice;
-  const prevClose = meta.chartPreviousClose ?? meta.previousClose;
+  const prevClose = meta.chartPreviousClose ?? meta.previousClose ?? price;
 
   return {
     symbol,
@@ -41,42 +53,29 @@ const fetchYahooQuote = async ({ symbol, ticker }) => {
     dayLow: meta.regularMarketDayLow ?? price,
     dayHigh: meta.regularMarketDayHigh ?? price,
     changePercent: ((price - prevClose) / prevClose) * 100,
-    marketState: meta.marketState,
+    marketState: isCrypto ? 'CRYPTO' : deriveMarketState(meta.currentTradingPeriod),
   };
 };
 
-const fetchCryptoQuotes = async () => {
-  const ids = CRYPTO_IDS.map((c) => c.id).join(',');
-  const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}`;
-  const response = await axios.get(url);
-
-  return CRYPTO_IDS.map(({ symbol, id }) => {
-    const coin = response.data.find((c) => c.id === id);
-    if (!coin) throw new Error(`No CoinGecko data for ${symbol}`);
-
-    const price = coin.current_price;
-    const changePercent = coin.price_change_percentage_24h ?? 0;
-    // 24h-ago price = current / (1 + change%)
-    const prevClose = price / (1 + changePercent / 100);
-
-    return {
-      symbol,
-      price,
-      prevClose,
-      dayLow: coin.low_24h,
-      dayHigh: coin.high_24h,
-      changePercent,
-      marketState: 'CRYPTO', // 24/7 — no closed state
-    };
+// Fetch a group of tickers, dropping any that fail so one bad quote
+// doesn't blank the whole block.
+const fetchGroup = async (tickers, isCrypto) => {
+  const results = await Promise.allSettled(tickers.map((t) => fetchYahooQuote(t, isCrypto)));
+  return results.flatMap((r) => {
+    if (r.status === 'fulfilled') return [r.value];
+    console.warn('Market quote failed:', r.reason);
+    return [];
   });
 };
 
 const readCache = () => {
   try {
-    const ts = Number(localStorage.getItem(CACHE_TIMESTAMP_KEY));
-    if (!ts || Date.now() - ts > CACHE_TTL) return null;
     const raw = localStorage.getItem(CACHE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const { cachedAt, data } = JSON.parse(raw);
+    const age = Date.now() - cachedAt;
+    if (!cachedAt || age < 0 || age > CACHE_TTL) return null;
+    return data;
   } catch {
     return null;
   }
@@ -84,8 +83,7 @@ const readCache = () => {
 
 const writeCache = (data) => {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-    localStorage.setItem(CACHE_TIMESTAMP_KEY, String(Date.now()));
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ cachedAt: Date.now(), data }));
   } catch {
     // ignore quota / private-mode errors
   }
@@ -96,10 +94,15 @@ export const fetchMarketData = async () => {
   if (cached) return cached;
 
   const [stocks, crypto] = await Promise.all([
-    Promise.all(YAHOO_TICKERS.map(fetchYahooQuote)),
-    fetchCryptoQuotes(),
+    fetchGroup(YAHOO_TICKERS, false),
+    fetchGroup(CRYPTO_TICKERS, true),
   ]);
+  if (!stocks.length && !crypto.length) throw new Error('All market quotes failed');
+
   const result = { stocks, crypto };
-  writeCache(result);
+  // Only cache complete results so a partial failure retries on next load
+  if (stocks.length === YAHOO_TICKERS.length && crypto.length === CRYPTO_TICKERS.length) {
+    writeCache(result);
+  }
   return result;
 };
