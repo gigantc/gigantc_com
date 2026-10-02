@@ -22,13 +22,26 @@ const decodeHtmlEntities = (text) => {
 // ("Spanish–American War") are kept intact.
 const EVENT_PATTERN = /^\s*((?:AD\s+)?\d{1,4}(?:\s*(?:BC|BCE|AD|CE))?)\s*[–—-]\s*(.+)$/s;
 
+const FRACTIONS = { '1⁄2': '½', '1⁄4': '¼', '3⁄4': '¾', '1⁄3': '⅓', '2⁄3': '⅔' };
+
+// Clean up Wikipedia leftovers in the plain-text field
+const cleanText = (text) => text
+  // Inline template CSS that leaks into the text (e.g. ".mw-parser-output .frac{…}")
+  .replace(/(?:\.mw-parser-output[^{]*\{[^}]*\})+/g, '')
+  // "33+1⁄2" → "33½"
+  .replace(/\+?(\d⁄\d)/g, (m, frac) => FRACTIONS[frac] || m)
+  // "[citation needed]", "[12]", "[note 3]"
+  .replace(/\[(?:citation needed|\d+|note \d+)\]/gi, '')
+  // "World War I :" → "World War I:"
+  .replace(/\s+([:;])(?=\s)/g, '$1');
+
 
 //////////////////////////////////////
 // PARSE EVENT
 // Splits an event's text into year + description
 const parseEvent = (event) => {
   if (!event?.text) return FALLBACK_EVENT;
-  const decoded = decodeHtmlEntities(event.text);
+  const decoded = cleanText(decodeHtmlEntities(event.text));
   const match = decoded.match(EVENT_PATTERN);
   const year = match?.[1].trim();
 
