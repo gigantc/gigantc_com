@@ -24,10 +24,10 @@ export const getCachedEvents = () => {
 
 //////////////////////////////////////
 // SAVE EVENTS TO CACHE
-export const setCachedEvents = (events, month, day) => {
+export const setCachedEvents = (events, dateKey) => {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify(events));
-    localStorage.setItem(DATE_KEY, `${month}-${day}`);
+    localStorage.setItem(DATE_KEY, dateKey);
     return true;
   } catch (error) {
     console.error('Error saving today events to cache:', error);
@@ -38,13 +38,9 @@ export const setCachedEvents = (events, month, day) => {
 
 //////////////////////////////////////
 // CHECK IF CACHE IS FOR TODAY
-export const isCacheForToday = (month, day) => {
+export const isCacheForToday = (dateKey) => {
   try {
-    const cachedDate = localStorage.getItem(DATE_KEY);
-    if (!cachedDate) return false;
-
-    const todayDate = `${month}-${day}`;
-    return cachedDate === todayDate;
+    return localStorage.getItem(DATE_KEY) === dateKey;
   } catch (error) {
     console.error('Error checking today cache date:', error);
     return false;

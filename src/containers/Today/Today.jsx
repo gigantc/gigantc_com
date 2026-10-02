@@ -10,29 +10,50 @@ import './Today.scss';
 const FALLBACK_EVENT = { year: 'Year Zero', text: 'Uhhh. No factoid found.', link: '#' };
 
 
-//////////////////////////////////////
-// PARSE EVENT
-// Splits an event's text into year + description
-const parseEvent = (event) => {
-  if (!event) return FALLBACK_EVENT;
-  const parts = event.text?.split(/&#8211;|–/);
-  return {
-    year: parts?.[0]?.trim() || FALLBACK_EVENT.year,
-    text: parts?.[1]?.trim() || FALLBACK_EVENT.text,
-    link: event.links?.[1]?.url || '#',
-  };
-};
-
 // Strip HTML entities from the text string
 const decodeHtmlEntities = (text) => {
   const parser = new DOMParser();
   return parser.parseFromString(`<!doctype html><body>${text}`, 'text/html').body.textContent;
 };
 
-// Pick a random index into a list, or -1 if the list is empty
-const pickRandomIndex = (list) => {
+// Leading year (e.g. "1766", "48 BC", "AD 69"), then the separator dash.
+// The source is usually an en-dash but sometimes a plain hyphen or em-dash.
+// Only the first dash is consumed so dashes inside the description
+// ("Spanish–American War") are kept intact.
+const EVENT_PATTERN = /^\s*((?:AD\s+)?\d{1,4}(?:\s*(?:BC|BCE|AD|CE))?)\s*[–—-]\s*(.+)$/s;
+
+
+//////////////////////////////////////
+// PARSE EVENT
+// Splits an event's text into year + description
+const parseEvent = (event) => {
+  if (!event?.text) return FALLBACK_EVENT;
+  const decoded = decodeHtmlEntities(event.text);
+  const match = decoded.match(EVENT_PATTERN);
+  const year = match?.[1].trim();
+
+  // First real wiki link that isn't the year page (skips "#cite_note-…" anchors)
+  const links = (event.links || []).filter((l) => l.url?.startsWith('http'));
+  const link = links.find((l) => l.text !== year) || links[0];
+
+  return {
+    year: year || null,
+    text: (match ? match[2] : decoded).trim() || FALLBACK_EVENT.text,
+    link: link?.url || '#',
+  };
+};
+
+
+// Pick a random index into a list, or -1 if the list is empty.
+// Prefers facts not yet shown; once all have been seen, any fact is fair
+// game except the one currently on screen.
+const pickRandomIndex = (list, shown = []) => {
   if (list.length === 0) return -1;
-  return Math.floor(Math.random() * list.length);
+  const all = list.map((_, i) => i);
+  let pool = all.filter((i) => !shown.includes(i));
+  if (pool.length === 0) pool = all.filter((i) => i !== shown[shown.length - 1]);
+  if (pool.length === 0) pool = all;
+  return pool[Math.floor(Math.random() * pool.length)];
 };
 
 const Today = () => {
@@ -60,7 +81,7 @@ const Today = () => {
   // Picks a new random fact, appends it to history, and displays it
   const appendRandomFact = () => {
     const { events: evts, history: hist } = stateRef.current;
-    const index = pickRandomIndex(evts);
+    const index = pickRandomIndex(evts, hist);
     const newHistory = [...hist, index];
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
@@ -124,9 +145,10 @@ const Today = () => {
         const today = new Date();
         const month = today.getMonth() + 1;
         const day = today.getDate();
+        const dateKey = `${today.getFullYear()}-${month}-${day}`;
 
         // Check if we have cached events for today
-        if (isCacheForToday(month, day)) {
+        if (isCacheForToday(dateKey)) {
           const cached = getCachedEvents();
           if (cached?.length) {
             const index = pickRandomIndex(cached);
@@ -146,13 +168,13 @@ const Today = () => {
         const fetched = response.data.data.Events || [];
         const index = pickRandomIndex(fetched);
         setEvents(fetched);
-        setCachedEvents(fetched, month, day);
+        setCachedEvents(fetched, dateKey);
         setHistory([index]);
         setHistoryIndex(0);
         setCurrentEvent(parseEvent(fetched[index]));
       } catch (err) {
-        setError('Failed to load the feed :(');
-        console.error('Error fetching the feed:', err);
+        setError('Failed to load today\'s facts :(');
+        console.error('Error fetching today facts:', err);
       } finally {
         setLoading(false);
       }
@@ -191,8 +213,12 @@ const Today = () => {
             </button>
           </div>
           <div className={`box ${fade ? 'fade' : ''}`}>
-            <h2>On this day in <strong>{currentEvent.year}</strong></h2>
-            <p>{decodeHtmlEntities(currentEvent.text)}</p>
+            <h2>
+              {currentEvent.year
+                ? <>On this day in <strong>{currentEvent.year}</strong></>
+                : 'On this day'}
+            </h2>
+            <p>{currentEvent.text}</p>
             <a href={currentEvent.link} target="_blank" rel="noopener noreferrer">
               LEARN MORE
             </a>
